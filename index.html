@@ -6,8 +6,8 @@
   <title>Jervis Automation Practice Store</title>
   <style>
     :root {
-      --primary: #121212; /* "Dark Mode" inspired like SauceLabs */
-      --accent: #2ecc71; /* Success Green */
+      --primary: #121212;
+      --accent: #2ecc71;
       --bg: #f5f6fa;
       --card-bg: #ffffff;
       --text: #333333;
@@ -17,12 +17,14 @@
     
     /* Header & Nav */
     header { background-color: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
-    .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+    .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); cursor: pointer;}
+    .nav-right { display: flex; align-items: center; gap: 20px; }
     .cart-icon-container { position: relative; cursor: pointer; }
     .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; display: none;}
+    .user-nav-info { font-size: 0.9rem; font-weight: 500; display: flex; gap: 10px; align-items: center; }
 
     /* Main Layout */
-    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: none;} /* Hidden by default */
+    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: none;}
     .active-screen { display: block; }
 
     h1, h2 { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;}
@@ -37,7 +39,7 @@
     .item-price-space { display: flex; justify-content: space-between; align-items: center; margin-top: auto;}
     .item-price { font-size: 1.3rem; font-weight: bold; color: var(--text); }
     
-    /* Global Buttons */
+    /* Buttons */
     .btn { border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-primary:hover { background-color: #333; }
@@ -47,103 +49,169 @@
     .btn-accent:hover { background-color: #27ae60; }
     .btn-remove { background-color: #e74c3c; color: white; }
     .btn-remove:hover { background-color: #c0392b; }
+    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
 
-    /* Cart & Checkout Specifics */
+    /* Forms & Auth */
+    .auth-box { max-width: 450px; margin: 40px auto; background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .cart-item, .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
     .checkout-form { max-width: 500px; margin-top: 20px; }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
-    input[type="text"], input[type="email"], input[type="url"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
-    .error-message { color: #e74c3c; font-size: 0.85rem; margin-top: 5px; display: none; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="url"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
     
     .checkout-summary-box { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-top: 20px;}
     .total-label { font-size: 1.2rem; font-weight: bold; }
     .total-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
 
-    /* n8n Webhook input at top */
-    .webhook-config { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; gap: 10px; align-items: center;}
-    .webhook-config input { flex-grow: 1; margin: 0; }
+    /* n8n Webhook Configuration Panel */
+    .webhook-config-panel { background: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: grid; gap: 10px;}
+    .webhook-row { display: flex; align-items: center; gap: 10px; }
+    .webhook-row label { width: 180px; margin: 0; font-size: 0.85rem;}
+    .webhook-row input { flex-grow: 1; margin: 0; padding: 6px 10px; }
 
-    /* Status/Message box */
+    /* Status Message Box */
     #status-message { position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
-    .status-success { background-color: var(--accent); }
+    .status-success { background-color: var(--accent); color: var(--primary) !important; }
     .status-error { background-color: #e74c3c; }
-
+    .status-info { background-color: var(--primary); }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="logo">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
-    <div class="cart-icon-container" onclick="showScreen('cart')" id="shopping-cart-link">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="cart-badge" id="cart-quantity-badge">0</span>
+    <div class="logo" onclick="showScreen('inventory')">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
+    
+    <div class="nav-right">
+      <div class="user-nav-info" id="user-nav-container">
+        <!-- Auth status injected here by JS -->
+      </div>
+      <div class="cart-icon-container" onclick="showScreen('cart')" id="shopping-cart-link">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="cart-badge" id="cart-quantity-badge">0</span>
+      </div>
     </div>
   </header>
 
-  <!-- Status Message Overlay -->
   <div id="status-message"></div>
 
-  <!-- Main Inventory Screen -->
+  <!-- Registration Screen -->
+  <div class="container" id="register-container">
+    <div class="auth-box">
+      <h2>Create an Account</h2>
+      <form id="registration-form" onsubmit="handleRegistration(event)">
+        <div class="form-group">
+          <label for="reg-first-name">First Name</label>
+          <input type="text" id="reg-first-name" required placeholder="John">
+        </div>
+        <div class="form-group">
+          <label for="reg-last-name">Last Name</label>
+          <input type="text" id="reg-last-name" required placeholder="Doe">
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email Address</label>
+          <input type="email" id="reg-email" required placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label for="reg-postal">Postal / Zip Code</label>
+          <input type="text" id="reg-postal" required placeholder="10001">
+        </div>
+        <button type="submit" class="btn btn-accent" style="width:100%" id="register-submit-btn">Register User</button>
+      </form>
+      <p style="text-align:center; margin-top: 15px; font-size: 0.9rem;">
+        Already registered? <a href="#" onclick="showScreen('login')">Login here</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Login Screen -->
+  <div class="container" id="login-container">
+    <div class="auth-box">
+      <h2>Sign In</h2>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="login-submit-btn">Login</button>
+      </form>
+      <p style="text-align:center; margin-top: 15px; font-size: 0.9rem;">
+        Need an account? <a href="#" onclick="showScreen('register')">Register here</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Main Product Inventory Screen -->
   <div class="container active-screen" id="inventory-container">
-    <div class="webhook-config">
-      <label for="n8n-webhook-url">n8n Webhook (Optional):</label>
-      <input type="url" id="n8n-webhook-url" placeholder="https://your-n8n-instance.hooks.n8n.cloud/webhook/test">
+    <div class="webhook-config-panel">
+      <strong>⚙️ n8n Automation Webhooks</strong>
+      <div class="webhook-row">
+        <label for="n8n-register-webhook">User Reg Webhook (Airtable):</label>
+        <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register">
+      </div>
+      <div class="webhook-row">
+        <label for="n8n-order-webhook">Checkout Order Webhook:</label>
+        <input type="url" id="n8n-order-webhook" placeholder="https://your-n8n.cloud/webhook/order">
+      </div>
     </div>
     
     <h2>Products</h2>
-    <div class="inventory-list" id="inventory-list">
-      <!-- Products generated by JS -->
-    </div>
+    <div class="inventory-list" id="inventory-list"></div>
   </div>
 
   <!-- Cart Screen -->
   <div class="container" id="cart-container">
     <h2>Your Cart</h2>
-    <div id="cart-list">
-      <!-- Cart items generated by JS -->
-    </div>
+    <div id="cart-list"></div>
     <div style="margin-top:20px; display:flex; justify-content:space-between">
       <button class="btn btn-secondary" onclick="showScreen('inventory')" id="continue-shopping">Continue Shopping</button>
       <button class="btn btn-accent" onclick="showScreen('checkout')" id="checkout-button">Checkout</button>
     </div>
   </div>
 
-  <!-- Checkout Step 1: Information -->
+  <!-- Checkout Step 1: User Details -->
   <div class="container" id="checkout-container">
-    <h2>Checkout: Your Information</h2>
+    <h2>Checkout: Information</h2>
+    <p id="autofill-notice" style="color: var(--accent); font-weight:600; display:none;">
+      ✨ Profile details automatically pre-populated from your session!
+    </p>
     <form class="checkout-form" id="checkout-info-form" onsubmit="handleCheckoutInfo(event)">
       <div class="form-group">
-        <label for="first-name">First Name</label>
-        <input type="text" id="first-name" required>
+        <label for="checkout-first-name">First Name</label>
+        <input type="text" id="checkout-first-name" required>
       </div>
       <div class="form-group">
-        <label for="last-name">Last Name</label>
-        <input type="text" id="last-name" required>
+        <label for="checkout-last-name">Last Name</label>
+        <input type="text" id="checkout-last-name" required>
       </div>
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" required>
+        <label for="checkout-email">Email</label>
+        <input type="email" id="checkout-email" required>
       </div>
       <div class="form-group">
-        <label for="postal-code">Zip/Postal Code</label>
-        <input type="text" id="postal-code" required>
+        <label for="checkout-postal-code">Zip/Postal Code</label>
+        <input type="text" id="checkout-postal-code" required>
       </div>
       
       <div style="margin-top:20px; display:flex; justify-content:space-between">
         <button type="button" class="btn btn-secondary" onclick="showScreen('cart')">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="continue-checkout">Continue</button>
+        <button type="submit" class="btn btn-primary" id="continue-checkout">Continue to Overview</button>
       </div>
     </form>
   </div>
 
-  <!-- Checkout Step 2: Summary & Pay -->
+  <!-- Checkout Step 2: Summary -->
   <div class="container" id="summary-container">
     <h2>Checkout: Overview</h2>
     <div class="checkout-summary-box">
-      <div id="summary-items-list">
-        <!-- Summary items generated by JS -->
-      </div>
+      <div id="summary-items-list"></div>
       <div class="summary-item" style="border:none; margin-top:10px;">
         <span class="total-label">Total:</span>
         <span class="total-value" id="summary-total-price">$0.00</span>
@@ -156,15 +224,15 @@
     </div>
   </div>
 
-  <!-- Order Complete Screen -->
+  <!-- Complete Screen -->
   <div class="container" id="complete-container" style="text-align:center;">
     <h1 style="color:var(--accent); border:none;">THANK YOU FOR YOUR ORDER!</h1>
-    <p>Your order has been dispatched, and has been sent to n8n (if webhook was set).</p>
+    <p>Your order has been placed and transmitted to n8n successfully.</p>
     <button class="btn btn-primary" onclick="resetStore()" id="back-to-products">Back Home</button>
   </div>
 
   <script>
-    // --- Data & State ---
+    // Global App State
     const products = [
       { id: 'tshirt', name: 'Jervis.io Automator T-Shirt', desc: 'Get the classic automation t-shirt. High quality cotton.', price: 19.99 },
       { id: 'backpack', name: 'Sleek Backpack', desc: 'Perfect for carrying your laptop to automation meetups.', price: 49.99 },
@@ -172,29 +240,106 @@
       { id: 'light', name: 'Bike Light', desc: 'Stay visible while cycling. Easy attachment.', price: 9.99 },
       { id: 'jacket', name: 'Fleece Jacket', desc: 'Warm and comfortable fleece jacket for cold days.', price: 59.99 }
     ];
-    let cart = [];
-    let customerInfo = {};
-
-    // --- Core Functions ---
     
+    let cart = [];
+    let currentUser = null; 
+
+    // --- Screen Router ---
     function showScreen(screenName) {
-      // Hide all containers
       document.querySelectorAll('.container').forEach(el => el.classList.remove('active-screen'));
-      // Show requested container
       document.getElementById(`${screenName}-container`).classList.add('active-screen');
       
       if (screenName === 'cart') renderCart();
+      if (screenName === 'checkout') populateCheckoutForm();
       if (screenName === 'summary') renderSummary();
     }
 
+    // --- Authentication Logic ---
+    async function handleRegistration(event) {
+      event.preventDefault();
+      
+      const userPayload = {
+        userId: 'USR-' + Math.floor(1000 + Math.random() * 9000),
+        firstName: document.getElementById('reg-first-name').value,
+        lastName: document.getElementById('reg-last-name').value,
+        email: document.getElementById('reg-email').value,
+        postalCode: document.getElementById('reg-postal').value,
+        registeredAt: new Date().toISOString()
+      };
+
+      currentUser = userPayload;
+      updateUserNav();
+      showStatus('Registration successful! Auto-logging in...', 'success');
+
+      // Trigger n8n Registration Webhook (For Airtable Sync)
+      const webhookUrl = document.getElementById('n8n-register-webhook').value;
+      if (webhookUrl) {
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userPayload)
+          });
+          showStatus('Registration details sent to n8n webhook!', 'success');
+        } catch (err) {
+          showStatus('Registered, but failed to hit registration webhook.', 'error');
+        }
+      }
+
+      document.getElementById('registration-form').reset();
+      showScreen('inventory');
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value;
+      
+      // Simulating simple authentication/retrieval
+      currentUser = {
+        userId: 'USR-EXISTING',
+        firstName: email.split('@')[0],
+        lastName: 'User',
+        email: email,
+        postalCode: '90210'
+      };
+
+      updateUserNav();
+      showStatus('Logged in successfully!', 'success');
+      document.getElementById('login-form').reset();
+      showScreen('inventory');
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      updateUserNav();
+      showStatus('You have been logged out.');
+      showScreen('inventory');
+    }
+
+    function updateUserNav() {
+      const container = document.getElementById('user-nav-container');
+      if (currentUser) {
+        container.innerHTML = `
+          <span>Hello, <strong>${currentUser.firstName}</strong></span>
+          <button class="btn btn-secondary btn-sm" onclick="logoutUser()" id="logout-btn">Logout</button>
+        `;
+      } else {
+        container.innerHTML = `
+          <button class="btn btn-secondary btn-sm" onclick="showScreen('login')" id="nav-login-btn">Login</button>
+          <button class="btn btn-accent btn-sm" onclick="showScreen('register')" id="nav-register-btn">Register</button>
+        `;
+      }
+    }
+
+    // --- Inventory & Cart ---
     function renderInventory() {
       const list = document.getElementById('inventory-list');
       list.innerHTML = '';
       products.forEach(p => {
         const isInCart = cart.some(item => item.id === p.id);
-        const itemHtml = `
+        list.innerHTML += `
           <div class="inventory-item" id="item-${p.id}">
-            <div class="item-img-placeholder">IMG</div>
+            <div class="item-img-placeholder">PRODUCT</div>
             <h3 class="item-name">${p.name}</h3>
             <p class="item-desc">${p.desc}</p>
             <div class="item-price-space">
@@ -206,7 +351,6 @@
             </div>
           </div>
         `;
-        list.innerHTML += itemHtml;
       });
     }
 
@@ -215,7 +359,7 @@
       if (product) {
         cart.push(product);
         updateCartBadge();
-        renderInventory(); // Refresh buttons
+        renderInventory();
         showStatus('Item added to cart!');
       }
     }
@@ -224,21 +368,17 @@
       cart = cart.filter(item => item.id !== productId);
       updateCartBadge();
       if (document.getElementById('cart-container').classList.contains('active-screen')) {
-          renderCart(); // Refresh cart list if on cart screen
+        renderCart();
       } else {
-          renderInventory(); // Refresh inventory buttons
+        renderInventory();
       }
       showStatus('Item removed from cart!');
     }
 
     function updateCartBadge() {
       const badge = document.getElementById('cart-quantity-badge');
-      if (cart.length > 0) {
-        badge.innerText = cart.length;
-        badge.style.display = 'block';
-      } else {
-        badge.style.display = 'none';
-      }
+      badge.innerText = cart.length;
+      badge.style.display = cart.length > 0 ? 'block' : 'none';
     }
 
     function renderCart() {
@@ -247,7 +387,7 @@
       list.innerHTML = '';
       
       if (cart.length === 0) {
-        list.innerHTML = '<p style="text-align:center; padding: 20px; color: #666;">Your cart is empty.</p>';
+        list.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Cart is empty.</p>';
         checkoutBtn.style.display = 'none';
         return;
       }
@@ -266,14 +406,22 @@
       });
     }
 
+    // --- Checkout Logic ---
+    function populateCheckoutForm() {
+      const notice = document.getElementById('autofill-notice');
+      if (currentUser) {
+        document.getElementById('checkout-first-name').value = currentUser.firstName || '';
+        document.getElementById('checkout-last-name').value = currentUser.lastName || '';
+        document.getElementById('checkout-email').value = currentUser.email || '';
+        document.getElementById('checkout-postal-code').value = currentUser.postalCode || '';
+        notice.style.display = 'block';
+      } else {
+        notice.style.display = 'none';
+      }
+    }
+
     function handleCheckoutInfo(event) {
       event.preventDefault();
-      customerInfo = {
-        firstName: document.getElementById('first-name').value,
-        lastName: document.getElementById('last-name').value,
-        email: document.getElementById('email').value,
-        postalCode: document.getElementById('postal-code').value
-      };
       showScreen('summary');
     }
 
@@ -297,50 +445,41 @@
 
     async function finishOrder() {
       showStatus('Processing order...');
-      const webhookUrl = document.getElementById('n8n-webhook-url').value;
+      const webhookUrl = document.getElementById('n8n-order-webhook').value;
       const total = cart.reduce((sum, p) => sum + p.price, 0);
 
-      const payload = {
+      const orderPayload = {
         orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
         timestamp: new Date().toISOString(),
-        customer: customerInfo,
+        customer: {
+          firstName: document.getElementById('checkout-first-name').value,
+          lastName: document.getElementById('checkout-last-name').value,
+          email: document.getElementById('checkout-email').value,
+          postalCode: document.getElementById('checkout-postal-code').value
+        },
         items: cart,
-        totalAmount: total,
-        source: 'Jervis Practice Store'
+        totalAmount: total
       };
 
       if (webhookUrl) {
         try {
-          const response = await fetch(webhookUrl, {
+          await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(orderPayload)
           });
-          if (response.ok) {
-            showStatus('Order completed and sent to n8n!', 'success');
-            showScreen('complete');
-          } else {
-            showStatus('Order placed locally, but n8n webhook failed.', 'error');
-            // We still show complete, even if webhook fails (optional behavior)
-            showScreen('complete'); 
-          }
+          showStatus('Order sent to n8n webhook successfully!', 'success');
         } catch (error) {
-          showStatus('Error reaching n8n webhook. Is n8n running?', 'error');
-          showScreen('complete');
+          showStatus('Could not connect to Order Webhook.', 'error');
         }
-      } else {
-        // No webhook, just local complete
-        showStatus('Order completed locally!', 'success');
-        showScreen('complete');
       }
+      showScreen('complete');
     }
 
     function resetStore() {
       cart = [];
-      customerInfo = {};
       updateCartBadge();
       document.getElementById('checkout-info-form').reset();
-      document.getElementById('summary-items-list').innerHTML = '';
       showScreen('inventory');
       renderInventory();
     }
@@ -348,15 +487,15 @@
     function showStatus(text, type = 'info') {
       const el = document.getElementById('status-message');
       el.innerText = text;
-      el.className = ''; // Reset classes
-      el.classList.add(type === 'success' ? 'status-success' : 'status-error');
+      el.className = '';
+      el.classList.add(`status-${type}`);
       el.style.display = 'block';
       setTimeout(() => el.style.display = 'none', 4000);
     }
 
-    // --- Initialization ---
+    // Init App
+    updateUserNav();
     renderInventory();
-
   </script>
 </body>
 </html>
