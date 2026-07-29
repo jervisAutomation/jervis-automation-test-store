@@ -19,7 +19,7 @@
     header { background-color: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
     .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); cursor: pointer;}
     .nav-right { display: flex; align-items: center; gap: 20px; }
-    .cart-icon-container { position: relative; cursor: pointer; }
+    .cart-icon-container { position: relative; cursor: pointer; display: none; /* Hidden until logged in */ }
     .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; display: none;}
     .user-nav-info { font-size: 0.9rem; font-weight: 500; display: flex; gap: 10px; align-items: center; }
 
@@ -47,8 +47,8 @@
     .btn-secondary:hover { background-color: #e1e8ed; }
     .btn-accent { background-color: var(--accent); color: var(--primary); }
     .btn-accent:hover { background-color: #27ae60; }
-    .btn-remove { background-color: #e74c3c; color: white; }
-    .btn-remove:hover { background-color: #c0392b; }
+    .btn-remove, .btn-danger { background-color: #e74c3c; color: white; }
+    .btn-remove:hover, .btn-danger:hover { background-color: #c0392b; }
     .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
 
     /* Forms & Auth */
@@ -66,7 +66,7 @@
     /* n8n Webhook Configuration Panel */
     .webhook-config-panel { background: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: grid; gap: 10px;}
     .webhook-row { display: flex; align-items: center; gap: 10px; }
-    .webhook-row label { width: 180px; margin: 0; font-size: 0.85rem;}
+    .webhook-row label { width: 220px; margin: 0; font-size: 0.85rem;}
     .webhook-row input { flex-grow: 1; margin: 0; padding: 6px 10px; }
 
     /* Status Message Box */
@@ -79,7 +79,7 @@
 <body>
 
   <header>
-    <div class="logo" onclick="showScreen('inventory')">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
+    <div class="logo" onclick="handleLogoClick()">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
     
     <div class="nav-right">
       <div class="user-nav-info" id="user-nav-container">
@@ -93,6 +93,28 @@
   </header>
 
   <div id="status-message"></div>
+
+  <!-- Login Screen (DEFAULT HOMEPAGE) -->
+  <div class="container active-screen" id="login-container">
+    <div class="auth-box">
+      <h2>Sign In</h2>
+      <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">Please login or register to access the store.</p>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="login-submit-btn">Login</button>
+      </form>
+      <p style="text-align:center; margin-top: 15px; font-size: 0.9rem;">
+        Need an account? <a href="#" onclick="showScreen('register')">Register here</a>
+      </p>
+    </div>
+  </div>
 
   <!-- Registration Screen -->
   <div class="container" id="register-container">
@@ -127,34 +149,58 @@
     </div>
   </div>
 
-  <!-- Login Screen -->
-  <div class="container" id="login-container">
-    <div class="auth-box">
-      <h2>Sign In</h2>
-      <form id="login-form" onsubmit="handleLogin(event)">
+  <!-- Account Settings Screen -->
+  <div class="container" id="account-container">
+    <div class="auth-box" style="max-width: 550px;">
+      <h2>Manage Account</h2>
+      <p style="font-size:0.85rem; color:#666;">User ID: <strong id="acc-user-id">-</strong></p>
+      
+      <form id="account-update-form" onsubmit="handleAccountUpdate(event)">
         <div class="form-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" required placeholder="john@example.com">
+          <label for="acc-first-name">First Name</label>
+          <input type="text" id="acc-first-name" required>
         </div>
         <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" required placeholder="••••••••">
+          <label for="acc-last-name">Last Name</label>
+          <input type="text" id="acc-last-name" required>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%" id="login-submit-btn">Login</button>
+        <div class="form-group">
+          <label for="acc-email">Email Address</label>
+          <input type="email" id="acc-email" required>
+        </div>
+        <div class="form-group">
+          <label for="acc-postal">Postal / Zip Code</label>
+          <input type="text" id="acc-postal" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width:100%" id="update-account-btn">Update Profile (Trigger Webhook)</button>
       </form>
-      <p style="text-align:center; margin-top: 15px; font-size: 0.9rem;">
-        Need an account? <a href="#" onclick="showScreen('register')">Register here</a>
-      </p>
+
+      <hr style="margin: 25px 0; border: none; border-top: 1px solid var(--border);">
+
+      <div style="background-color: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 6px;">
+        <h4 style="margin: 0 0 8px 0; color: #c53030;">Danger Zone</h4>
+        <p style="margin: 0 0 12px 0; font-size: 0.85rem; color: #742a2a;">Deleting your account will trigger the n8n Delete Webhook to purge records from Airtable.</p>
+        <button class="btn btn-danger btn-sm" onclick="handleAccountDelete()" id="delete-account-btn">Delete Account</button>
+      </div>
     </div>
   </div>
 
-  <!-- Main Product Inventory Screen -->
-  <div class="container active-screen" id="inventory-container">
+  <!-- Main Product Inventory Screen (LOCKED UNTIL LOGGED IN) -->
+  <div class="container" id="inventory-container">
     <div class="webhook-config-panel">
-      <strong>⚙️ n8n Automation Webhooks</strong>
+      <strong>⚙️ n8n Automation Webhooks (Airtable & Process Integration)</strong>
       <div class="webhook-row">
-        <label for="n8n-register-webhook">User Reg Webhook (Airtable):</label>
+        <label for="n8n-register-webhook">User Reg Webhook:</label>
         <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register">
+      </div>
+      <div class="webhook-row">
+        <label for="n8n-update-webhook">Update Account Webhook:</label>
+        <input type="url" id="n8n-update-webhook" placeholder="https://your-n8n.cloud/webhook/update-user">
+      </div>
+      <div class="webhook-row">
+        <label for="n8n-delete-webhook">Delete Account Webhook:</label>
+        <input type="url" id="n8n-delete-webhook" placeholder="https://your-n8n.cloud/webhook/delete-user">
       </div>
       <div class="webhook-row">
         <label for="n8n-order-webhook">Checkout Order Webhook:</label>
@@ -246,19 +292,37 @@
 
     // --- Screen Router ---
     function showScreen(screenName) {
+      // Security Gate: Protect Store screens if not logged in
+      const protectedScreens = ['inventory', 'cart', 'checkout', 'summary', 'account', 'complete'];
+      if (!currentUser && protectedScreens.includes(screenName)) {
+        showStatus('Please log in or register first.', 'error');
+        screenName = 'login';
+      }
+
       document.querySelectorAll('.container').forEach(el => el.classList.remove('active-screen'));
       document.getElementById(`${screenName}-container`).classList.add('active-screen');
       
+      if (screenName === 'inventory') renderInventory();
       if (screenName === 'cart') renderCart();
       if (screenName === 'checkout') populateCheckoutForm();
+      if (screenName === 'account') populateAccountForm();
       if (screenName === 'summary') renderSummary();
     }
 
-    // --- Authentication Logic ---
+    function handleLogoClick() {
+      if (currentUser) {
+        showScreen('inventory');
+      } else {
+        showScreen('login');
+      }
+    }
+
+    // --- Authentication & User Settings Logic ---
     async function handleRegistration(event) {
       event.preventDefault();
       
       const userPayload = {
+        action: 'CREATE',
         userId: 'USR-' + Math.floor(1000 + Math.random() * 9000),
         firstName: document.getElementById('reg-first-name').value,
         lastName: document.getElementById('reg-last-name').value,
@@ -269,9 +333,9 @@
 
       currentUser = userPayload;
       updateUserNav();
-      showStatus('Registration successful! Auto-logging in...', 'success');
+      showStatus('Registration successful! Accessing store...', 'success');
 
-      // Trigger n8n Registration Webhook (For Airtable Sync)
+      // Trigger n8n Registration Webhook
       const webhookUrl = document.getElementById('n8n-register-webhook').value;
       if (webhookUrl) {
         try {
@@ -282,7 +346,7 @@
           });
           showStatus('Registration details sent to n8n webhook!', 'success');
         } catch (err) {
-          showStatus('Registered, but failed to hit registration webhook.', 'error');
+          showStatus('Registered locally, but failed to hit registration webhook.', 'error');
         }
       }
 
@@ -294,7 +358,6 @@
       event.preventDefault();
       const email = document.getElementById('login-email').value;
       
-      // Simulating simple authentication/retrieval
       currentUser = {
         userId: 'USR-EXISTING',
         firstName: email.split('@')[0],
@@ -309,25 +372,104 @@
       showScreen('inventory');
     }
 
+    function populateAccountForm() {
+      if (!currentUser) return;
+      document.getElementById('acc-user-id').innerText = currentUser.userId;
+      document.getElementById('acc-first-name').value = currentUser.firstName;
+      document.getElementById('acc-last-name').value = currentUser.lastName;
+      document.getElementById('acc-email').value = currentUser.email;
+      document.getElementById('acc-postal').value = currentUser.postalCode;
+    }
+
+    async function handleAccountUpdate(event) {
+      event.preventDefault();
+      if (!currentUser) return;
+
+      const updatePayload = {
+        action: 'UPDATE',
+        userId: currentUser.userId,
+        firstName: document.getElementById('acc-first-name').value,
+        lastName: document.getElementById('acc-last-name').value,
+        email: document.getElementById('acc-email').value,
+        postalCode: document.getElementById('acc-postal').value,
+        updatedAt: new Date().toISOString()
+      };
+
+      currentUser = { ...currentUser, ...updatePayload };
+      updateUserNav();
+
+      const webhookUrl = document.getElementById('n8n-update-webhook').value;
+      if (webhookUrl) {
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatePayload)
+          });
+          showStatus('Account updated & sent to n8n webhook!', 'success');
+        } catch (err) {
+          showStatus('Profile updated locally, but webhook failed.', 'error');
+        }
+      } else {
+        showStatus('Profile updated locally (No Update Webhook set)', 'success');
+      }
+    }
+
+    async function handleAccountDelete() {
+      if (!currentUser) return;
+      if (!confirm("Are you sure you want to delete your account? This will send a delete request to n8n.")) return;
+
+      const deletePayload = {
+        action: 'DELETE',
+        userId: currentUser.userId,
+        email: currentUser.email,
+        deletedAt: new Date().toISOString()
+      };
+
+      const webhookUrl = document.getElementById('n8n-delete-webhook').value;
+      if (webhookUrl) {
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(deletePayload)
+          });
+          showStatus('Delete request sent to n8n webhook!', 'success');
+        } catch (err) {
+          showStatus('Delete webhook failed.', 'error');
+        }
+      }
+
+      logoutUser();
+      showStatus('Account deleted & session ended.', 'info');
+    }
+
     function logoutUser() {
       currentUser = null;
+      cart = [];
+      updateCartBadge();
       updateUserNav();
       showStatus('You have been logged out.');
-      showScreen('inventory');
+      showScreen('login');
     }
 
     function updateUserNav() {
       const container = document.getElementById('user-nav-container');
+      const cartLink = document.getElementById('shopping-cart-link');
+      
       if (currentUser) {
         container.innerHTML = `
           <span>Hello, <strong>${currentUser.firstName}</strong></span>
+          <button class="btn btn-secondary btn-sm" onclick="showScreen('account')" id="my-account-btn">Account Settings</button>
           <button class="btn btn-secondary btn-sm" onclick="logoutUser()" id="logout-btn">Logout</button>
         `;
+        cartLink.style.display = 'block';
       } else {
         container.innerHTML = `
           <button class="btn btn-secondary btn-sm" onclick="showScreen('login')" id="nav-login-btn">Login</button>
           <button class="btn btn-accent btn-sm" onclick="showScreen('register')" id="nav-register-btn">Register</button>
         `;
+        cartLink.style.display = 'none';
       }
     }
 
@@ -481,7 +623,6 @@
       updateCartBadge();
       document.getElementById('checkout-info-form').reset();
       showScreen('inventory');
-      renderInventory();
     }
 
     function showStatus(text, type = 'info') {
@@ -493,9 +634,8 @@
       setTimeout(() => el.style.display = 'none', 4000);
     }
 
-    // Init App
+    // Init App State
     updateUserNav();
-    renderInventory();
   </script>
 </body>
 </html>
