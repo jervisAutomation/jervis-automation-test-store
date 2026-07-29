@@ -120,6 +120,7 @@
   <div class="container" id="register-container">
     <div class="auth-box">
       <h2>Create an Account</h2>
+
       <form id="registration-form" onsubmit="handleRegistration(event)">
         <div class="form-group">
           <label for="reg-first-name">First Name</label>
@@ -189,7 +190,7 @@
   <!-- Main Product Inventory Screen -->
   <div class="container" id="inventory-container">
     <div class="webhook-config-panel">
-      <strong>⚙️ n8n Automation Webhooks (Saved in Browser LocalStorage)</strong>
+      <strong>⚙️ n8n Automation Webhooks (Saved in LocalStorage)</strong>
       <div class="webhook-row">
         <label for="n8n-register-webhook">User Reg Webhook:</label>
         <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register" onchange="saveWebhookUrls()">
@@ -289,7 +290,7 @@
     let cart = [];
     let currentUser = null; 
 
-    // --- Webhook LocalStorage Persist ---
+    // --- Webhook LocalStorage Helpers ---
     function saveWebhookUrls() {
       const urls = {
         register: document.getElementById('n8n-register-webhook').value,
@@ -301,14 +302,27 @@
     }
 
     function loadWebhookUrls() {
+      // Check URL query parameters first
+      const urlParams = new URLSearchParams(window.location.search);
+      const regWebhookParam = urlParams.get('reg_webhook');
+      const updateWebhookParam = urlParams.get('update_webhook');
+      const deleteWebhookParam = urlParams.get('delete_webhook');
+      const orderWebhookParam = urlParams.get('order_webhook');
+
       const saved = localStorage.getItem('n8n_webhook_urls');
-      if (saved) {
-        const urls = JSON.parse(saved);
-        if (urls.register) document.getElementById('n8n-register-webhook').value = urls.register;
-        if (urls.update) document.getElementById('n8n-update-webhook').value = urls.update;
-        if (urls.delete) document.getElementById('n8n-delete-webhook').value = urls.delete;
-        if (urls.order) document.getElementById('n8n-order-webhook').value = urls.order;
-      }
+      const urls = saved ? JSON.parse(saved) : {};
+
+      const regVal = regWebhookParam || urls.register || '';
+      const updateVal = updateWebhookParam || urls.update || '';
+      const deleteVal = deleteWebhookParam || urls.delete || '';
+      const orderVal = orderWebhookParam || urls.order || '';
+
+      document.getElementById('n8n-register-webhook').value = regVal;
+      document.getElementById('n8n-update-webhook').value = updateVal;
+      document.getElementById('n8n-delete-webhook').value = deleteVal;
+      document.getElementById('n8n-order-webhook').value = orderVal;
+
+      saveWebhookUrls();
     }
 
     // --- Screen Router ---
@@ -341,6 +355,15 @@
     async function handleRegistration(event) {
       event.preventDefault();
       
+      const webhookUrl = document.getElementById('n8n-register-webhook').value;
+
+      // Append query param to browser address bar automatically upon registration!
+      if (webhookUrl) {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('reg_webhook', webhookUrl);
+        window.history.pushState({}, '', newUrl);
+      }
+
       const userPayload = {
         action: 'CREATE',
         userId: 'USR-' + Math.floor(1000 + Math.random() * 9000),
@@ -356,7 +379,6 @@
       showStatus('Registration successful! Accessing store...', 'success');
 
       // Trigger Webhook
-      const webhookUrl = document.getElementById('n8n-register-webhook').value;
       if (webhookUrl) {
         try {
           await fetch(webhookUrl, {
