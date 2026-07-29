@@ -301,29 +301,29 @@
       localStorage.setItem('n8n_webhook_urls', JSON.stringify(urls));
     }
 
-    function loadWebhookUrls() {
-      // Check URL query parameters first
-      const urlParams = new URLSearchParams(window.location.search);
-      const regWebhookParam = urlParams.get('reg_webhook');
-      const updateWebhookParam = urlParams.get('update_webhook');
-      const deleteWebhookParam = urlParams.get('delete_webhook');
-      const orderWebhookParam = urlParams.get('order_webhook');
+    // Hardcoded default fallback
+const DEFAULT_REGISTER_WEBHOOK = "https://n8n.mypracticeaiautomation.dpdns.org/webhook-test/register-user";
 
-      const saved = localStorage.getItem('n8n_webhook_urls');
-      const urls = saved ? JSON.parse(saved) : {};
+function loadWebhookUrls() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const regWebhookParam = urlParams.get('reg_webhook');
 
-      const regVal = regWebhookParam || urls.register || '';
-      const updateVal = updateWebhookParam || urls.update || '';
-      const deleteVal = deleteWebhookParam || urls.delete || '';
-      const orderVal = orderWebhookParam || urls.order || '';
+  const saved = localStorage.getItem('n8n_webhook_urls');
+  const urls = saved ? JSON.parse(saved) : {};
 
-      document.getElementById('n8n-register-webhook').value = regVal;
-      document.getElementById('n8n-update-webhook').value = updateVal;
-      document.getElementById('n8n-delete-webhook').value = deleteVal;
-      document.getElementById('n8n-order-webhook').value = orderVal;
+  // Priority: 1. URL Param -> 2. LocalStorage -> 3. Hardcoded Default
+  const regVal = regWebhookParam || urls.register || DEFAULT_REGISTER_WEBHOOK;
+  const updateVal = urlParams.get('update_webhook') || urls.update || '';
+  const deleteVal = urlParams.get('delete_webhook') || urls.delete || '';
+  const orderVal = urlParams.get('order_webhook') || urls.order || '';
 
-      saveWebhookUrls();
-    }
+  document.getElementById('n8n-register-webhook').value = regVal;
+  document.getElementById('n8n-update-webhook').value = updateVal;
+  document.getElementById('n8n-delete-webhook').value = deleteVal;
+  document.getElementById('n8n-order-webhook').value = orderVal;
+
+  saveWebhookUrls();
+}
 
     // --- Screen Router ---
     function showScreen(screenName) {
