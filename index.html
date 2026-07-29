@@ -19,7 +19,7 @@
     header { background-color: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
     .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); cursor: pointer;}
     .nav-right { display: flex; align-items: center; gap: 20px; }
-    .cart-icon-container { position: relative; cursor: pointer; display: none; /* Hidden until logged in */ }
+    .cart-icon-container { position: relative; cursor: pointer; display: none; }
     .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; display: none;}
     .user-nav-info { font-size: 0.9rem; font-weight: 500; display: flex; gap: 10px; align-items: center; }
 
@@ -186,25 +186,25 @@
     </div>
   </div>
 
-  <!-- Main Product Inventory Screen (LOCKED UNTIL LOGGED IN) -->
+  <!-- Main Product Inventory Screen -->
   <div class="container" id="inventory-container">
     <div class="webhook-config-panel">
-      <strong>⚙️ n8n Automation Webhooks (Airtable & Process Integration)</strong>
+      <strong>⚙️ n8n Automation Webhooks (Saved in Browser LocalStorage)</strong>
       <div class="webhook-row">
         <label for="n8n-register-webhook">User Reg Webhook:</label>
-        <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register">
+        <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register" onchange="saveWebhookUrls()">
       </div>
       <div class="webhook-row">
         <label for="n8n-update-webhook">Update Account Webhook:</label>
-        <input type="url" id="n8n-update-webhook" placeholder="https://your-n8n.cloud/webhook/update-user">
+        <input type="url" id="n8n-update-webhook" placeholder="https://your-n8n.cloud/webhook/update-user" onchange="saveWebhookUrls()">
       </div>
       <div class="webhook-row">
         <label for="n8n-delete-webhook">Delete Account Webhook:</label>
-        <input type="url" id="n8n-delete-webhook" placeholder="https://your-n8n.cloud/webhook/delete-user">
+        <input type="url" id="n8n-delete-webhook" placeholder="https://your-n8n.cloud/webhook/delete-user" onchange="saveWebhookUrls()">
       </div>
       <div class="webhook-row">
         <label for="n8n-order-webhook">Checkout Order Webhook:</label>
-        <input type="url" id="n8n-order-webhook" placeholder="https://your-n8n.cloud/webhook/order">
+        <input type="url" id="n8n-order-webhook" placeholder="https://your-n8n.cloud/webhook/order" onchange="saveWebhookUrls()">
       </div>
     </div>
     
@@ -278,7 +278,6 @@
   </div>
 
   <script>
-    // Global App State
     const products = [
       { id: 'tshirt', name: 'Jervis.io Automator T-Shirt', desc: 'Get the classic automation t-shirt. High quality cotton.', price: 19.99 },
       { id: 'backpack', name: 'Sleek Backpack', desc: 'Perfect for carrying your laptop to automation meetups.', price: 49.99 },
@@ -290,9 +289,30 @@
     let cart = [];
     let currentUser = null; 
 
+    // --- Webhook LocalStorage Persist ---
+    function saveWebhookUrls() {
+      const urls = {
+        register: document.getElementById('n8n-register-webhook').value,
+        update: document.getElementById('n8n-update-webhook').value,
+        delete: document.getElementById('n8n-delete-webhook').value,
+        order: document.getElementById('n8n-order-webhook').value
+      };
+      localStorage.setItem('n8n_webhook_urls', JSON.stringify(urls));
+    }
+
+    function loadWebhookUrls() {
+      const saved = localStorage.getItem('n8n_webhook_urls');
+      if (saved) {
+        const urls = JSON.parse(saved);
+        if (urls.register) document.getElementById('n8n-register-webhook').value = urls.register;
+        if (urls.update) document.getElementById('n8n-update-webhook').value = urls.update;
+        if (urls.delete) document.getElementById('n8n-delete-webhook').value = urls.delete;
+        if (urls.order) document.getElementById('n8n-order-webhook').value = urls.order;
+      }
+    }
+
     // --- Screen Router ---
     function showScreen(screenName) {
-      // Security Gate: Protect Store screens if not logged in
       const protectedScreens = ['inventory', 'cart', 'checkout', 'summary', 'account', 'complete'];
       if (!currentUser && protectedScreens.includes(screenName)) {
         showStatus('Please log in or register first.', 'error');
@@ -317,7 +337,7 @@
       }
     }
 
-    // --- Authentication & User Settings Logic ---
+    // --- Authentication & User Settings ---
     async function handleRegistration(event) {
       event.preventDefault();
       
@@ -335,7 +355,7 @@
       updateUserNav();
       showStatus('Registration successful! Accessing store...', 'success');
 
-      // Trigger n8n Registration Webhook
+      // Trigger Webhook
       const webhookUrl = document.getElementById('n8n-register-webhook').value;
       if (webhookUrl) {
         try {
@@ -346,7 +366,7 @@
           });
           showStatus('Registration details sent to n8n webhook!', 'success');
         } catch (err) {
-          showStatus('Registered locally, but failed to hit registration webhook.', 'error');
+          showStatus('Registered locally, but failed to hit webhook.', 'error');
         }
       }
 
@@ -411,7 +431,7 @@
           showStatus('Profile updated locally, but webhook failed.', 'error');
         }
       } else {
-        showStatus('Profile updated locally (No Update Webhook set)', 'success');
+        showStatus('Profile updated locally (No Webhook set)', 'success');
       }
     }
 
@@ -634,7 +654,8 @@
       setTimeout(() => el.style.display = 'none', 4000);
     }
 
-    // Init App State
+    // Init App
+    loadWebhookUrls();
     updateUserNav();
   </script>
 </body>
