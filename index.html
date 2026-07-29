@@ -3,125 +3,360 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Automation Test Store</title>
+  <title>Jervis Automation Practice Store</title>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1e293b; background-color: #f8fafc; }
-    h1, h2 { color: #0f172a; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-    .card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #ffffff; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .card h3 { margin-top: 0; }
-    .price { font-size: 1.25rem; font-weight: bold; color: #2563eb; }
-    .btn { background: #2563eb; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; width: 100%; }
-    .btn:hover { background: #1d4ed8; }
-    #checkout-section { margin-top: 40px; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; }
-    label { display: block; font-weight: 600; margin-top: 12px; font-size: 0.9rem; }
-    input { width: 100%; max-width: 400px; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-    #submit-btn { background: #16a34a; margin-top: 16px; }
-    #submit-btn:hover { background: #15803d; }
-    #message { margin-top: 16px; font-weight: 600; padding: 10px; border-radius: 6px; display: none; }
+    :root {
+      --primary: #121212; /* "Dark Mode" inspired like SauceLabs */
+      --accent: #2ecc71; /* Success Green */
+      --bg: #f5f6fa;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --border: #e1e8ed;
+    }
+    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; color: var(--text); padding-bottom: 50px;}
+    
+    /* Header & Nav */
+    header { background-color: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
+    .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+    .cart-icon-container { position: relative; cursor: pointer; }
+    .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; display: none;}
+
+    /* Main Layout */
+    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: none;} /* Hidden by default */
+    .active-screen { display: block; }
+
+    h1, h2 { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;}
+
+    /* Product Inventory Grid */
+    .inventory-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+    .inventory-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; transition: transform 0.2s; display: flex; flex-direction: column;}
+    .inventory-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .item-img-placeholder { height: 150px; background-color: #eee; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #aaa; font-weight: bold;}
+    .item-name { font-size: 1.2rem; font-weight: 600; margin: 0 0 8px 0; color: var(--primary); }
+    .item-desc { font-size: 0.9rem; color: #666; margin-bottom: 15px; flex-grow: 1; }
+    .item-price-space { display: flex; justify-content: space-between; align-items: center; margin-top: auto;}
+    .item-price { font-size: 1.3rem; font-weight: bold; color: var(--text); }
+    
+    /* Global Buttons */
+    .btn { border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: #333; }
+    .btn-secondary { background-color: #f0f3f5; color: var(--primary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background-color: #e1e8ed; }
+    .btn-accent { background-color: var(--accent); color: var(--primary); }
+    .btn-accent:hover { background-color: #27ae60; }
+    .btn-remove { background-color: #e74c3c; color: white; }
+    .btn-remove:hover { background-color: #c0392b; }
+
+    /* Cart & Checkout Specifics */
+    .cart-item, .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
+    .checkout-form { max-width: 500px; margin-top: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+    input[type="text"], input[type="email"], input[type="url"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+    .error-message { color: #e74c3c; font-size: 0.85rem; margin-top: 5px; display: none; }
+    
+    .checkout-summary-box { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-top: 20px;}
+    .total-label { font-size: 1.2rem; font-weight: bold; }
+    .total-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+
+    /* n8n Webhook input at top */
+    .webhook-config { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; gap: 10px; align-items: center;}
+    .webhook-config input { flex-grow: 1; margin: 0; }
+
+    /* Status/Message box */
+    #status-message { position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
+    .status-success { background-color: var(--accent); }
+    .status-error { background-color: #e74c3c; }
+
   </style>
 </head>
 <body>
 
-  <h1>⚡ Automation Practice Store</h1>
-  <p>Designed for testing Playwright, Selenium, Puppeteer, and n8n Webhook triggers.</p>
+  <header>
+    <div class="logo">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
+    <div class="cart-icon-container" onclick="showScreen('cart')" id="shopping-cart-link">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="cart-badge" id="cart-quantity-badge">0</span>
+    </div>
+  </header>
 
-  <h2>Catalog</h2>
-  <div class="grid">
-    <div class="card" id="product-1">
-      <h3>Wireless Headphones</h3>
-      <p class="price">$99.00</p>
-      <button class="btn" onclick="addToCart('Wireless Headphones', 99)">Add to Cart</button>
+  <!-- Status Message Overlay -->
+  <div id="status-message"></div>
+
+  <!-- Main Inventory Screen -->
+  <div class="container active-screen" id="inventory-container">
+    <div class="webhook-config">
+      <label for="n8n-webhook-url">n8n Webhook (Optional):</label>
+      <input type="url" id="n8n-webhook-url" placeholder="https://your-n8n-instance.hooks.n8n.cloud/webhook/test">
     </div>
-    <div class="card" id="product-2">
-      <h3>Mechanical Keyboard</h3>
-      <p class="price">$149.00</p>
-      <button class="btn" onclick="addToCart('Mechanical Keyboard', 149)">Add to Cart</button>
-    </div>
-    <div class="card" id="product-3">
-      <h3>Ergonomic Mouse</h3>
-      <p class="price">$49.00</p>
-      <button class="btn" onclick="addToCart('Ergonomic Mouse', 49)">Add to Cart</button>
+    
+    <h2>Products</h2>
+    <div class="inventory-list" id="inventory-list">
+      <!-- Products generated by JS -->
     </div>
   </div>
 
-  <div id="checkout-section">
-    <h2>Checkout Summary</h2>
-    <p>Items in cart: <strong id="cart-count">0</strong> | Total: <strong>$<span id="cart-total">0</span></strong></p>
+  <!-- Cart Screen -->
+  <div class="container" id="cart-container">
+    <h2>Your Cart</h2>
+    <div id="cart-list">
+      <!-- Cart items generated by JS -->
+    </div>
+    <div style="margin-top:20px; display:flex; justify-content:space-between">
+      <button class="btn btn-secondary" onclick="showScreen('inventory')" id="continue-shopping">Continue Shopping</button>
+      <button class="btn btn-accent" onclick="showScreen('checkout')" id="checkout-button">Checkout</button>
+    </div>
+  </div>
 
-    <form id="checkout-form" onsubmit="handleCheckout(event)">
-      <label for="name">Full Name</label>
-      <input type="text" id="name" name="name" required placeholder="John Doe">
-
-      <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" required placeholder="john@example.com">
-
-      <label for="webhook">n8n Webhook URL (Optional)</label>
-      <input type="url" id="webhook" placeholder="https://your-n8n.cloud/webhook/test">
-
-      <button type="submit" class="btn" id="submit-btn">Place Order</button>
+  <!-- Checkout Step 1: Information -->
+  <div class="container" id="checkout-container">
+    <h2>Checkout: Your Information</h2>
+    <form class="checkout-form" id="checkout-info-form" onsubmit="handleCheckoutInfo(event)">
+      <div class="form-group">
+        <label for="first-name">First Name</label>
+        <input type="text" id="first-name" required>
+      </div>
+      <div class="form-group">
+        <label for="last-name">Last Name</label>
+        <input type="text" id="last-name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="postal-code">Zip/Postal Code</label>
+        <input type="text" id="postal-code" required>
+      </div>
+      
+      <div style="margin-top:20px; display:flex; justify-content:space-between">
+        <button type="button" class="btn btn-secondary" onclick="showScreen('cart')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="continue-checkout">Continue</button>
+      </div>
     </form>
+  </div>
 
-    <div id="message"></div>
+  <!-- Checkout Step 2: Summary & Pay -->
+  <div class="container" id="summary-container">
+    <h2>Checkout: Overview</h2>
+    <div class="checkout-summary-box">
+      <div id="summary-items-list">
+        <!-- Summary items generated by JS -->
+      </div>
+      <div class="summary-item" style="border:none; margin-top:10px;">
+        <span class="total-label">Total:</span>
+        <span class="total-value" id="summary-total-price">$0.00</span>
+      </div>
+    </div>
+    
+    <div style="margin-top:20px; display:flex; justify-content:space-between">
+      <button class="btn btn-secondary" onclick="showScreen('inventory')">Cancel</button>
+      <button class="btn btn-accent" onclick="finishOrder()" id="finish-button">Finish Order</button>
+    </div>
+  </div>
+
+  <!-- Order Complete Screen -->
+  <div class="container" id="complete-container" style="text-align:center;">
+    <h1 style="color:var(--accent); border:none;">THANK YOU FOR YOUR ORDER!</h1>
+    <p>Your order has been dispatched, and has been sent to n8n (if webhook was set).</p>
+    <button class="btn btn-primary" onclick="resetStore()" id="back-to-products">Back Home</button>
   </div>
 
   <script>
+    // --- Data & State ---
+    const products = [
+      { id: 'tshirt', name: 'Jervis.io Automator T-Shirt', desc: 'Get the classic automation t-shirt. High quality cotton.', price: 19.99 },
+      { id: 'backpack', name: 'Sleek Backpack', desc: 'Perfect for carrying your laptop to automation meetups.', price: 49.99 },
+      { id: 'onesie', name: 'Automation Onesie', desc: 'For the tiniest automators. Super soft.', price: 7.99 },
+      { id: 'light', name: 'Bike Light', desc: 'Stay visible while cycling. Easy attachment.', price: 9.99 },
+      { id: 'jacket', name: 'Fleece Jacket', desc: 'Warm and comfortable fleece jacket for cold days.', price: 59.99 }
+    ];
     let cart = [];
-    let total = 0;
+    let customerInfo = {};
 
-    function addToCart(item, price) {
-      cart.push({ item, price });
-      total += price;
-      document.getElementById('cart-count').innerText = cart.length;
-      document.getElementById('cart-total').innerText = total;
+    // --- Core Functions ---
+    
+    function showScreen(screenName) {
+      // Hide all containers
+      document.querySelectorAll('.container').forEach(el => el.classList.remove('active-screen'));
+      // Show requested container
+      document.getElementById(`${screenName}-container`).classList.add('active-screen');
+      
+      if (screenName === 'cart') renderCart();
+      if (screenName === 'summary') renderSummary();
     }
 
-    async function handleCheckout(event) {
+    function renderInventory() {
+      const list = document.getElementById('inventory-list');
+      list.innerHTML = '';
+      products.forEach(p => {
+        const isInCart = cart.some(item => item.id === p.id);
+        const itemHtml = `
+          <div class="inventory-item" id="item-${p.id}">
+            <div class="item-img-placeholder">IMG</div>
+            <h3 class="item-name">${p.name}</h3>
+            <p class="item-desc">${p.desc}</p>
+            <div class="item-price-space">
+              <span class="item-price">$${p.price.toFixed(2)}</span>
+              ${isInCart 
+                ? `<button class="btn btn-remove" onclick="removeFromCart('${p.id}')" id="remove-${p.id}">Remove</button>`
+                : `<button class="btn btn-primary" onclick="addToCart('${p.id}')" id="add-to-cart-${p.id}">Add to Cart</button>`
+              }
+            </div>
+          </div>
+        `;
+        list.innerHTML += itemHtml;
+      });
+    }
+
+    function addToCart(productId) {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        cart.push(product);
+        updateCartBadge();
+        renderInventory(); // Refresh buttons
+        showStatus('Item added to cart!');
+      }
+    }
+
+    function removeFromCart(productId) {
+      cart = cart.filter(item => item.id !== productId);
+      updateCartBadge();
+      if (document.getElementById('cart-container').classList.contains('active-screen')) {
+          renderCart(); // Refresh cart list if on cart screen
+      } else {
+          renderInventory(); // Refresh inventory buttons
+      }
+      showStatus('Item removed from cart!');
+    }
+
+    function updateCartBadge() {
+      const badge = document.getElementById('cart-quantity-badge');
+      if (cart.length > 0) {
+        badge.innerText = cart.length;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function renderCart() {
+      const list = document.getElementById('cart-list');
+      const checkoutBtn = document.getElementById('checkout-button');
+      list.innerHTML = '';
+      
+      if (cart.length === 0) {
+        list.innerHTML = '<p style="text-align:center; padding: 20px; color: #666;">Your cart is empty.</p>';
+        checkoutBtn.style.display = 'none';
+        return;
+      }
+      checkoutBtn.style.display = 'block';
+
+      cart.forEach(p => {
+        list.innerHTML += `
+          <div class="cart-item" id="cart-item-${p.id}">
+            <div>
+              <div class="item-name" style="font-size:1.1rem">${p.name}</div>
+              <div class="item-price" style="font-size:1.1rem">$${p.price.toFixed(2)}</div>
+            </div>
+            <button class="btn btn-secondary btn-remove" onclick="removeFromCart('${p.id}')" id="cart-remove-${p.id}">Remove</button>
+          </div>
+        `;
+      });
+    }
+
+    function handleCheckoutInfo(event) {
       event.preventDefault();
-      const messageDiv = document.getElementById('message');
-      messageDiv.style.display = 'block';
-      messageDiv.style.color = '#1e293b';
-      messageDiv.style.backgroundColor = '#f1f5f9';
-      messageDiv.innerText = 'Processing order...';
+      customerInfo = {
+        firstName: document.getElementById('first-name').value,
+        lastName: document.getElementById('last-name').value,
+        email: document.getElementById('email').value,
+        postalCode: document.getElementById('postal-code').value
+      };
+      showScreen('summary');
+    }
+
+    function renderSummary() {
+      const list = document.getElementById('summary-items-list');
+      const totalEl = document.getElementById('summary-total-price');
+      list.innerHTML = '';
+      let total = 0;
+
+      cart.forEach(p => {
+        total += p.price;
+        list.innerHTML += `
+          <div class="summary-item">
+            <span>${p.name}</span>
+            <span class="item-price">$${p.price.toFixed(2)}</span>
+          </div>
+        `;
+      });
+      totalEl.innerText = `$${total.toFixed(2)}`;
+    }
+
+    async function finishOrder() {
+      showStatus('Processing order...');
+      const webhookUrl = document.getElementById('n8n-webhook-url').value;
+      const total = cart.reduce((sum, p) => sum + p.price, 0);
 
       const payload = {
-        orderId: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-        customerName: document.getElementById('name').value,
-        customerEmail: document.getElementById('email').value,
+        orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+        timestamp: new Date().toISOString(),
+        customer: customerInfo,
         items: cart,
         totalAmount: total,
-        timestamp: new Date().toISOString()
+        source: 'Jervis Practice Store'
       };
-
-      const webhookUrl = document.getElementById('webhook').value;
 
       if (webhookUrl) {
         try {
-          const res = await fetch(webhookUrl, {
+          const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          if (res.ok) {
-            messageDiv.style.color = '#15803d';
-            messageDiv.style.backgroundColor = '#dcfce7';
-            messageDiv.innerText = '✅ Order successfully sent to n8n!';
+          if (response.ok) {
+            showStatus('Order completed and sent to n8n!', 'success');
+            showScreen('complete');
           } else {
-            messageDiv.style.color = '#b91c1c';
-            messageDiv.style.backgroundColor = '#fee2e2';
-            messageDiv.innerText = '❌ Webhook error: ' + res.statusText;
+            showStatus('Order placed locally, but n8n webhook failed.', 'error');
+            // We still show complete, even if webhook fails (optional behavior)
+            showScreen('complete'); 
           }
-        } catch (err) {
-          messageDiv.style.color = '#b91c1c';
-          messageDiv.style.backgroundColor = '#fee2e2';
-          messageDiv.innerText = '❌ Failed to reach the n8n webhook URL.';
+        } catch (error) {
+          showStatus('Error reaching n8n webhook. Is n8n running?', 'error');
+          showScreen('complete');
         }
       } else {
-        messageDiv.style.color = '#15803d';
-        messageDiv.style.backgroundColor = '#dcfce7';
-        messageDiv.innerText = '✅ Local Order Placed! (No Webhook specified)';
+        // No webhook, just local complete
+        showStatus('Order completed locally!', 'success');
+        showScreen('complete');
       }
     }
+
+    function resetStore() {
+      cart = [];
+      customerInfo = {};
+      updateCartBadge();
+      document.getElementById('checkout-info-form').reset();
+      document.getElementById('summary-items-list').innerHTML = '';
+      showScreen('inventory');
+      renderInventory();
+    }
+
+    function showStatus(text, type = 'info') {
+      const el = document.getElementById('status-message');
+      el.innerText = text;
+      el.className = ''; // Reset classes
+      el.classList.add(type === 'success' ? 'status-success' : 'status-error');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    // --- Initialization ---
+    renderInventory();
+
   </script>
 </body>
 </html>
