@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automation Test Store</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1e293b; background-color: #f8fafc; }
+    h1, h2 { color: #0f172a; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #ffffff; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card h3 { margin-top: 0; }
+    .price { font-size: 1.25rem; font-weight: bold; color: #2563eb; }
+    .btn { background: #2563eb; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; width: 100%; }
+    .btn:hover { background: #1d4ed8; }
+    #checkout-section { margin-top: 40px; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; }
+    label { display: block; font-weight: 600; margin-top: 12px; font-size: 0.9rem; }
+    input { width: 100%; max-width: 400px; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+    #submit-btn { background: #16a34a; margin-top: 16px; }
+    #submit-btn:hover { background: #15803d; }
+    #message { margin-top: 16px; font-weight: 600; padding: 10px; border-radius: 6px; display: none; }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Automation Practice Store</h1>
+  <p>Designed for testing Playwright, Selenium, Puppeteer, and n8n Webhook triggers.</p>
+
+  <h2>Catalog</h2>
+  <div class="grid">
+    <div class="card" id="product-1">
+      <h3>Wireless Headphones</h3>
+      <p class="price">$99.00</p>
+      <button class="btn" onclick="addToCart('Wireless Headphones', 99)">Add to Cart</button>
+    </div>
+    <div class="card" id="product-2">
+      <h3>Mechanical Keyboard</h3>
+      <p class="price">$149.00</p>
+      <button class="btn" onclick="addToCart('Mechanical Keyboard', 149)">Add to Cart</button>
+    </div>
+    <div class="card" id="product-3">
+      <h3>Ergonomic Mouse</h3>
+      <p class="price">$49.00</p>
+      <button class="btn" onclick="addToCart('Ergonomic Mouse', 49)">Add to Cart</button>
+    </div>
+  </div>
+
+  <div id="checkout-section">
+    <h2>Checkout Summary</h2>
+    <p>Items in cart: <strong id="cart-count">0</strong> | Total: <strong>$<span id="cart-total">0</span></strong></p>
+
+    <form id="checkout-form" onsubmit="handleCheckout(event)">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required placeholder="John Doe">
+
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" required placeholder="john@example.com">
+
+      <label for="webhook">n8n Webhook URL (Optional)</label>
+      <input type="url" id="webhook" placeholder="https://your-n8n.cloud/webhook/test">
+
+      <button type="submit" class="btn" id="submit-btn">Place Order</button>
+    </form>
+
+    <div id="message"></div>
+  </div>
+
+  <script>
+    let cart = [];
+    let total = 0;
+
+    function addToCart(item, price) {
+      cart.push({ item, price });
+      total += price;
+      document.getElementById('cart-count').innerText = cart.length;
+      document.getElementById('cart-total').innerText = total;
+    }
+
+    async function handleCheckout(event) {
+      event.preventDefault();
+      const messageDiv = document.getElementById('message');
+      messageDiv.style.display = 'block';
+      messageDiv.style.color = '#1e293b';
+      messageDiv.style.backgroundColor = '#f1f5f9';
+      messageDiv.innerText = 'Processing order...';
+
+      const payload = {
+        orderId: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+        customerName: document.getElementById('name').value,
+        customerEmail: document.getElementById('email').value,
+        items: cart,
+        totalAmount: total,
+        timestamp: new Date().toISOString()
+      };
+
+      const webhookUrl = document.getElementById('webhook').value;
+
+      if (webhookUrl) {
+        try {
+          const res = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            messageDiv.style.color = '#15803d';
+            messageDiv.style.backgroundColor = '#dcfce7';
+            messageDiv.innerText = '✅ Order successfully sent to n8n!';
+          } else {
+            messageDiv.style.color = '#b91c1c';
+            messageDiv.style.backgroundColor = '#fee2e2';
+            messageDiv.innerText = '❌ Webhook error: ' + res.statusText;
+          }
+        } catch (err) {
+          messageDiv.style.color = '#b91c1c';
+          messageDiv.style.backgroundColor = '#fee2e2';
+          messageDiv.innerText = '❌ Failed to reach the n8n webhook URL.';
+        }
+      } else {
+        messageDiv.style.color = '#15803d';
+        messageDiv.style.backgroundColor = '#dcfce7';
+        messageDiv.innerText = '✅ Local Order Placed! (No Webhook specified)';
+      }
+    }
+  </script>
+</body>
+</html>
