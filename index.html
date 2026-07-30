@@ -18,7 +18,7 @@
     /* Header & Nav */
     header { background-color: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
     .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); cursor: pointer;}
-    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-right { display: flex; align-items: center; gap: 15px; }
     .cart-icon-container { position: relative; cursor: pointer; display: none; }
     .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; display: none;}
     .user-nav-info { font-size: 0.9rem; font-weight: 500; display: flex; gap: 10px; align-items: center; }
@@ -64,10 +64,10 @@
     .total-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
 
     /* n8n Webhook Configuration Panel */
-    .webhook-config-panel { background: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: grid; gap: 10px;}
-    .webhook-row { display: flex; align-items: center; gap: 10px; }
-    .webhook-row label { width: 220px; margin: 0; font-size: 0.85rem;}
-    .webhook-row input { flex-grow: 1; margin: 0; padding: 6px 10px; }
+    .webhook-config-panel { background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 8px; display: grid; gap: 15px;}
+    .webhook-row { display: flex; flex-direction: column; gap: 5px; }
+    .webhook-row label { margin: 0; font-size: 0.85rem; font-weight: 600; }
+    .webhook-row input { margin: 0; padding: 10px; }
 
     /* Status Message Box */
     #status-message { position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
@@ -82,6 +82,7 @@
     <div class="logo" onclick="handleLogoClick()">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
     
     <div class="nav-right">
+      <button class="btn btn-secondary btn-sm" onclick="showScreen('webhooks')" id="nav-webhooks-btn">⚙️ Webhooks</button>
       <div class="user-nav-info" id="user-nav-container">
         <!-- Auth status injected here by JS -->
       </div>
@@ -93,6 +94,38 @@
   </header>
 
   <div id="status-message"></div>
+
+  <!-- Dedicated Webhooks Configuration Screen -->
+  <div class="container" id="webhooks-container">
+    <div class="auth-box" style="max-width: 600px;">
+      <h2>⚙️ Webhook Configuration</h2>
+      <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">Configure your n8n automation webhooks below. Changes are saved automatically to LocalStorage.</p>
+      
+      <div class="webhook-config-panel">
+        <div class="webhook-row">
+          <label for="n8n-register-webhook">User Registration Webhook:</label>
+          <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register" onchange="saveWebhookUrls()">
+        </div>
+        <div class="webhook-row">
+          <label for="n8n-update-webhook">Update Account Webhook:</label>
+          <input type="url" id="n8n-update-webhook" placeholder="https://your-n8n.cloud/webhook/update-user" onchange="saveWebhookUrls()">
+        </div>
+        <div class="webhook-row">
+          <label for="n8n-delete-webhook">Delete Account Webhook:</label>
+          <input type="url" id="n8n-delete-webhook" placeholder="https://your-n8n.cloud/webhook/delete-user" onchange="saveWebhookUrls()">
+        </div>
+        <div class="webhook-row">
+          <label for="n8n-order-webhook">Checkout Order Webhook:</label>
+          <input type="url" id="n8n-order-webhook" placeholder="https://your-n8n.cloud/webhook/order" onchange="saveWebhookUrls()">
+        </div>
+      </div>
+
+      <div style="margin-top:20px; display:flex; justify-content:space-between">
+        <button class="btn btn-secondary" onclick="handleLogoClick()">Back</button>
+        <button class="btn btn-primary" onclick="saveWebhookUrls(); showStatus('Webhooks saved successfully!', 'success');">Save Webhooks</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Login Screen (DEFAULT HOMEPAGE) -->
   <div class="container active-screen" id="login-container">
@@ -189,26 +222,6 @@
 
   <!-- Main Product Inventory Screen -->
   <div class="container" id="inventory-container">
-    <div class="webhook-config-panel">
-      <strong>⚙️ n8n Automation Webhooks (Saved in LocalStorage)</strong>
-      <div class="webhook-row">
-        <label for="n8n-register-webhook">User Reg Webhook:</label>
-        <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register" onchange="saveWebhookUrls()">
-      </div>
-      <div class="webhook-row">
-        <label for="n8n-update-webhook">Update Account Webhook:</label>
-        <input type="url" id="n8n-update-webhook" placeholder="https://your-n8n.cloud/webhook/update-user" onchange="saveWebhookUrls()">
-      </div>
-      <div class="webhook-row">
-        <label for="n8n-delete-webhook">Delete Account Webhook:</label>
-        <input type="url" id="n8n-delete-webhook" placeholder="https://your-n8n.cloud/webhook/delete-user" onchange="saveWebhookUrls()">
-      </div>
-      <div class="webhook-row">
-        <label for="n8n-order-webhook">Checkout Order Webhook:</label>
-        <input type="url" id="n8n-order-webhook" placeholder="https://your-n8n.cloud/webhook/order" onchange="saveWebhookUrls()">
-      </div>
-    </div>
-    
     <h2>Products</h2>
     <div class="inventory-list" id="inventory-list"></div>
   </div>
@@ -302,28 +315,28 @@
     }
 
     // Hardcoded default fallback
-const DEFAULT_REGISTER_WEBHOOK = "https://n8n.mypracticeaiautomation.dpdns.org/webhook-test/register-user";
+    const DEFAULT_REGISTER_WEBHOOK = "https://n8n.mypracticeaiautomation.dpdns.org/webhook-test/register-user";
 
-function loadWebhookUrls() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const regWebhookParam = urlParams.get('reg_webhook');
+    function loadWebhookUrls() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const regWebhookParam = urlParams.get('reg_webhook');
 
-  const saved = localStorage.getItem('n8n_webhook_urls');
-  const urls = saved ? JSON.parse(saved) : {};
+      const saved = localStorage.getItem('n8n_webhook_urls');
+      const urls = saved ? JSON.parse(saved) : {};
 
-  // Priority: 1. URL Param -> 2. LocalStorage -> 3. Hardcoded Default
-  const regVal = regWebhookParam || urls.register || DEFAULT_REGISTER_WEBHOOK;
-  const updateVal = urlParams.get('update_webhook') || urls.update || '';
-  const deleteVal = urlParams.get('delete_webhook') || urls.delete || '';
-  const orderVal = urlParams.get('order_webhook') || urls.order || '';
+      // Priority: 1. URL Param -> 2. LocalStorage -> 3. Hardcoded Default
+      const regVal = regWebhookParam || urls.register || DEFAULT_REGISTER_WEBHOOK;
+      const updateVal = urlParams.get('update_webhook') || urls.update || '';
+      const deleteVal = urlParams.get('delete_webhook') || urls.delete || '';
+      const orderVal = urlParams.get('order_webhook') || urls.order || '';
 
-  document.getElementById('n8n-register-webhook').value = regVal;
-  document.getElementById('n8n-update-webhook').value = updateVal;
-  document.getElementById('n8n-delete-webhook').value = deleteVal;
-  document.getElementById('n8n-order-webhook').value = orderVal;
+      document.getElementById('n8n-register-webhook').value = regVal;
+      document.getElementById('n8n-update-webhook').value = updateVal;
+      document.getElementById('n8n-delete-webhook').value = deleteVal;
+      document.getElementById('n8n-order-webhook').value = orderVal;
 
-  saveWebhookUrls();
-}
+      saveWebhookUrls();
+    }
 
     // --- Screen Router ---
     function showScreen(screenName) {
