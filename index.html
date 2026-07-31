@@ -52,12 +52,13 @@
     .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
 
     /* Forms & Auth */
-    .auth-box { max-width: 450px; margin: 40px auto; background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .auth-box { max-width: 500px; margin: 40px auto; background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .cart-item, .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
-    .checkout-form { max-width: 500px; margin-top: 20px; }
+    .checkout-form { max-width: 550px; margin-top: 20px; }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
-    input[type="text"], input[type="email"], input[type="password"], input[type="url"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"], textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+    textarea { resize: vertical; min-height: 70px; }
     
     .checkout-summary-box { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-top: 20px;}
     .total-label { font-size: 1.2rem; font-weight: bold; }
@@ -156,24 +157,28 @@
 
       <form id="registration-form" onsubmit="handleRegistration(event)">
         <div class="form-group">
-          <label for="reg-first-name">First Name</label>
-          <input type="text" id="reg-first-name" required placeholder="John">
-        </div>
-        <div class="form-group">
-          <label for="reg-last-name">Last Name</label>
-          <input type="text" id="reg-last-name" required placeholder="Doe">
+          <label for="reg-full-name">Full Name</label>
+          <input type="text" id="reg-full-name" required placeholder="john doe">
         </div>
         <div class="form-group">
           <label for="reg-email">Email Address</label>
-          <input type="email" id="reg-email" required placeholder="john@example.com">
+          <input type="email" id="reg-email" required placeholder="john.doe@company.com">
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">Phone Number</label>
+          <input type="tel" id="reg-phone" required placeholder="+1 (555) 019-2831">
         </div>
         <div class="form-group">
           <label for="reg-password">Password</label>
           <input type="password" id="reg-password" required placeholder="••••••••">
         </div>
         <div class="form-group">
-          <label for="reg-postal">Postal / Zip Code</label>
-          <input type="text" id="reg-postal" required placeholder="10001">
+          <label for="reg-address">Full Address / Postal Code</label>
+          <input type="text" id="reg-address" required placeholder="123 main st, suite b, new york, ny 10001">
+        </div>
+        <div class="form-group">
+          <label for="reg-intent">Purchase Intent / Referral Notes</label>
+          <textarea id="reg-intent" placeholder="e.g. Looking to place bulk orders for my team of 50..."></textarea>
         </div>
         <button type="submit" class="btn btn-accent" style="width:100%" id="register-submit-btn">Register User</button>
       </form>
@@ -191,20 +196,20 @@
       
       <form id="account-update-form" onsubmit="handleAccountUpdate(event)">
         <div class="form-group">
-          <label for="acc-first-name">First Name</label>
-          <input type="text" id="acc-first-name" required>
-        </div>
-        <div class="form-group">
-          <label for="acc-last-name">Last Name</label>
-          <input type="text" id="acc-last-name" required>
+          <label for="acc-full-name">Full Name</label>
+          <input type="text" id="acc-full-name" required>
         </div>
         <div class="form-group">
           <label for="acc-email">Email Address</label>
           <input type="email" id="acc-email" required>
         </div>
         <div class="form-group">
-          <label for="acc-postal">Postal / Zip Code</label>
-          <input type="text" id="acc-postal" required>
+          <label for="acc-phone">Phone Number</label>
+          <input type="tel" id="acc-phone" required>
+        </div>
+        <div class="form-group">
+          <label for="acc-address">Full Address / Postal Code</label>
+          <input type="text" id="acc-address" required>
         </div>
         
         <button type="submit" class="btn btn-primary" style="width:100%" id="update-account-btn">Update Profile (Trigger Webhook)</button>
@@ -244,20 +249,20 @@
     </p>
     <form class="checkout-form" id="checkout-info-form" onsubmit="handleCheckoutInfo(event)">
       <div class="form-group">
-        <label for="checkout-first-name">First Name</label>
-        <input type="text" id="checkout-first-name" required>
-      </div>
-      <div class="form-group">
-        <label for="checkout-last-name">Last Name</label>
-        <input type="text" id="checkout-last-name" required>
+        <label for="checkout-full-name">Full Name</label>
+        <input type="text" id="checkout-full-name" required>
       </div>
       <div class="form-group">
         <label for="checkout-email">Email</label>
         <input type="email" id="checkout-email" required>
       </div>
       <div class="form-group">
-        <label for="checkout-postal-code">Zip/Postal Code</label>
-        <input type="text" id="checkout-postal-code" required>
+        <label for="checkout-phone">Phone Number</label>
+        <input type="tel" id="checkout-phone" required>
+      </div>
+      <div class="form-group">
+        <label for="checkout-address">Shipping Address</label>
+        <input type="text" id="checkout-address" required>
       </div>
       
       <div style="margin-top:20px; display:flex; justify-content:space-between">
@@ -380,10 +385,11 @@
       const userPayload = {
         action: 'CREATE',
         userId: 'USR-' + Math.floor(1000 + Math.random() * 9000),
-        firstName: document.getElementById('reg-first-name').value,
-        lastName: document.getElementById('reg-last-name').value,
+        fullName: document.getElementById('reg-full-name').value,
         email: document.getElementById('reg-email').value,
-        postalCode: document.getElementById('reg-postal').value,
+        phone: document.getElementById('reg-phone').value,
+        address: document.getElementById('reg-address').value,
+        intentNotes: document.getElementById('reg-intent').value,
         registeredAt: new Date().toISOString()
       };
 
@@ -415,10 +421,10 @@
       
       currentUser = {
         userId: 'USR-EXISTING',
-        firstName: email.split('@')[0],
-        lastName: 'User',
+        fullName: email.split('@')[0],
         email: email,
-        postalCode: '90210'
+        phone: '+1 555-019-2831',
+        address: '123 Main St, New York, NY 10001'
       };
 
       updateUserNav();
@@ -430,10 +436,10 @@
     function populateAccountForm() {
       if (!currentUser) return;
       document.getElementById('acc-user-id').innerText = currentUser.userId;
-      document.getElementById('acc-first-name').value = currentUser.firstName;
-      document.getElementById('acc-last-name').value = currentUser.lastName;
-      document.getElementById('acc-email').value = currentUser.email;
-      document.getElementById('acc-postal').value = currentUser.postalCode;
+      document.getElementById('acc-full-name').value = currentUser.fullName || '';
+      document.getElementById('acc-email').value = currentUser.email || '';
+      document.getElementById('acc-phone').value = currentUser.phone || '';
+      document.getElementById('acc-address').value = currentUser.address || '';
     }
 
     async function handleAccountUpdate(event) {
@@ -443,10 +449,10 @@
       const updatePayload = {
         action: 'UPDATE',
         userId: currentUser.userId,
-        firstName: document.getElementById('acc-first-name').value,
-        lastName: document.getElementById('acc-last-name').value,
+        fullName: document.getElementById('acc-full-name').value,
         email: document.getElementById('acc-email').value,
-        postalCode: document.getElementById('acc-postal').value,
+        phone: document.getElementById('acc-phone').value,
+        address: document.getElementById('acc-address').value,
         updatedAt: new Date().toISOString()
       };
 
@@ -514,7 +520,7 @@
       
       if (currentUser) {
         container.innerHTML = `
-          <span>Hello, <strong>${currentUser.firstName}</strong></span>
+          <span>Hello, <strong>${currentUser.fullName}</strong></span>
           <button class="btn btn-secondary btn-sm" onclick="showScreen('account')" id="my-account-btn">Account Settings</button>
           <button class="btn btn-secondary btn-sm" onclick="logoutUser()" id="logout-btn">Logout</button>
         `;
@@ -607,10 +613,10 @@
     function populateCheckoutForm() {
       const notice = document.getElementById('autofill-notice');
       if (currentUser) {
-        document.getElementById('checkout-first-name').value = currentUser.firstName || '';
-        document.getElementById('checkout-last-name').value = currentUser.lastName || '';
+        document.getElementById('checkout-full-name').value = currentUser.fullName || '';
         document.getElementById('checkout-email').value = currentUser.email || '';
-        document.getElementById('checkout-postal-code').value = currentUser.postalCode || '';
+        document.getElementById('checkout-phone').value = currentUser.phone || '';
+        document.getElementById('checkout-address').value = currentUser.address || '';
         notice.style.display = 'block';
       } else {
         notice.style.display = 'none';
@@ -649,10 +655,10 @@
         orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
         timestamp: new Date().toISOString(),
         customer: {
-          firstName: document.getElementById('checkout-first-name').value,
-          lastName: document.getElementById('checkout-last-name').value,
+          fullName: document.getElementById('checkout-full-name').value,
           email: document.getElementById('checkout-email').value,
-          postalCode: document.getElementById('checkout-postal-code').value
+          phone: document.getElementById('checkout-phone').value,
+          address: document.getElementById('checkout-address').value
         },
         items: cart,
         totalAmount: total
