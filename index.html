@@ -3,490 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jervis Automation Practice Store</title>
+  <title>Automation Test Store</title>
   <style>
     :root {
-      --primary: #121212;
-      --accent: #2ecc71;
-      --bg: #f5f6fa;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
       --card-bg: #ffffff;
-      --text: #333333;
-      --border: #e1e8ed;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
     }
-    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; color: var(--text); padding-bottom: 50px;}
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
     
-    /* Header & Nav */
-    header { background-color: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
-    .logo { font-size: 1.4rem; font-weight: bold; color: var(--accent); cursor: pointer;}
-    .nav-right { display: flex; align-items: center; gap: 15px; }
-    .cart-icon-container { position: relative; cursor: pointer; display: none; }
-    .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; display: none;}
-    .user-nav-info { font-size: 0.9rem; font-weight: 500; display: flex; gap: 10px; align-items: center; }
-
-    /* Main Layout */
-    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: none;}
-    .active-screen { display: block; }
-
-    h1, h2 { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;}
-
-    /* Product Inventory Grid */
-    .inventory-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-    .inventory-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; transition: transform 0.2s; display: flex; flex-direction: column;}
-    .inventory-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .item-img-placeholder { height: 150px; background-color: #eee; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #aaa; font-weight: bold;}
-    .item-name { font-size: 1.2rem; font-weight: 600; margin: 0 0 8px 0; color: var(--primary); }
-    .item-desc { font-size: 0.9rem; color: #666; margin-bottom: 15px; flex-grow: 1; }
-    .item-price-space { display: flex; justify-content: space-between; align-items: center; margin-top: auto;}
-    .item-price { font-size: 1.3rem; font-weight: bold; color: var(--text); }
+    header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); }
+    nav { display: flex; gap: 1rem; align-items: center; }
     
-    /* Buttons */
-    .btn { border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
-    .btn-primary { background-color: var(--primary); color: white; }
-    .btn-primary:hover { background-color: #333; }
-    .btn-secondary { background-color: #f0f3f5; color: var(--primary); border: 1px solid var(--border); }
-    .btn-secondary:hover { background-color: #e1e8ed; }
-    .btn-accent { background-color: var(--accent); color: var(--primary); }
-    .btn-accent:hover { background-color: #27ae60; }
-    .btn-remove, .btn-danger { background-color: #e74c3c; color: white; }
-    .btn-remove:hover, .btn-danger:hover { background-color: #c0392b; }
-    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
-
-    /* Forms & Auth */
-    .auth-box { max-width: 500px; margin: 40px auto; background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .cart-item, .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
-    .checkout-form { max-width: 550px; margin-top: 20px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
-    input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"], textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-family: inherit; }
-    textarea { resize: vertical; min-height: 70px; }
+    button { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; border: none; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: var(--danger-hover); }
     
-    .checkout-summary-box { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-top: 20px;}
-    .total-label { font-size: 1.2rem; font-weight: bold; }
-    .total-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
-
-    /* n8n Webhook Configuration Panel */
-    .webhook-config-panel { background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 8px; display: grid; gap: 15px;}
-    .webhook-row { display: flex; flex-direction: column; gap: 5px; }
-    .webhook-row label { margin: 0; font-size: 0.85rem; font-weight: 600; }
-    .webhook-row input { margin: 0; padding: 10px; }
-
-    /* Status Message Box */
-    #status-message { position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
-    .status-success { background-color: var(--accent); color: var(--primary) !important; }
-    .status-error { background-color: #e74c3c; }
-    .status-info { background-color: var(--primary); }
+    main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; }
+    input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 1rem; }
+    
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 100; }
+    .modal-backdrop.active { display: flex; }
+    .modal { background: var(--card-bg); width: 90%; max-width: 500px; border-radius: 0.5rem; padding: 1.5rem; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    
+    .user-badge { font-size: 0.875rem; color: var(--text-muted); }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="logo" onclick="handleLogoClick()">JERVIS.IO<span style="color:white; font-weight:normal">_STORE</span></div>
-    
-    <div class="nav-right">
-      <button class="btn btn-secondary btn-sm" onclick="showScreen('webhooks')" id="nav-webhooks-btn">⚙️ Webhooks</button>
-      <div class="user-nav-info" id="user-nav-container">
-        <!-- Auth status injected here by JS -->
+    <div class="logo">Automation Store</div>
+    <nav>
+      <button class="btn-outline" onclick="openModal('webhook-modal')">⚙️ Webhooks</button>
+      <div id="auth-buttons">
+        <button class="btn-outline" onclick="openModal('login-modal')">Log In</button>
+        <button class="btn-primary" onclick="openModal('register-modal')">Register</button>
       </div>
-      <div class="cart-icon-container" onclick="showScreen('cart')" id="shopping-cart-link">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        <span class="cart-badge" id="cart-quantity-badge">0</span>
+      <div id="user-menu" style="display:none;">
+        <span class="user-badge" id="user-email-display"></span>
+        <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
+        <button class="btn-outline" onclick="logout()">Logout</button>
       </div>
-    </div>
+    </nav>
   </header>
 
-  <div id="status-message"></div>
-
-  <!-- Dedicated Webhooks Configuration Screen -->
-  <div class="container" id="webhooks-container">
-    <div class="auth-box" style="max-width: 600px;">
-      <h2>⚙️ Webhook Configuration</h2>
-      <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">Configure your n8n automation webhooks below. Changes are saved automatically to LocalStorage.</p>
-      
-      <div class="webhook-config-panel">
-        <div class="webhook-row">
-          <label for="n8n-register-webhook">User Registration Webhook:</label>
-          <input type="url" id="n8n-register-webhook" placeholder="https://your-n8n.cloud/webhook/register" onchange="saveWebhookUrls()">
-        </div>
-        <div class="webhook-row">
-          <label for="n8n-update-webhook">Update Account Webhook:</label>
-          <input type="url" id="n8n-update-webhook" placeholder="https://your-n8n.cloud/webhook/update-user" onchange="saveWebhookUrls()">
-        </div>
-        <div class="webhook-row">
-          <label for="n8n-delete-webhook">Delete Account Webhook:</label>
-          <input type="url" id="n8n-delete-webhook" placeholder="https://your-n8n.cloud/webhook/delete-user" onchange="saveWebhookUrls()">
-        </div>
-        <div class="webhook-row">
-          <label for="n8n-order-webhook">Checkout Order Webhook:</label>
-          <input type="url" id="n8n-order-webhook" placeholder="https://your-n8n.cloud/webhook/order" onchange="saveWebhookUrls()">
-        </div>
-      </div>
-
-      <div style="margin-top:20px; display:flex; justify-content:space-between">
-        <button class="btn btn-secondary" onclick="handleLogoClick()">Back</button>
-        <button class="btn btn-primary" onclick="saveWebhookUrls(); showStatus('Webhooks saved successfully!', 'success');">Save Webhooks</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Login Screen (DEFAULT HOMEPAGE) -->
-  <div class="container active-screen" id="login-container">
-    <div class="auth-box">
-      <h2>Sign In</h2>
-      <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">Please login or register to access the store.</p>
-      <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" required placeholder="john@example.com">
-        </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" required placeholder="••••••••">
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%" id="login-submit-btn">Login</button>
-      </form>
-      <p style="text-align:center; margin-top: 15px; font-size: 0.9rem;">
-        Need an account? <a href="#" onclick="showScreen('register')">Register here</a>
+  <main>
+    <div class="card">
+      <h2>Welcome to Automation Store</h2>
+      <p style="margin-top: 0.5rem; color: var(--text-muted);">
+        Use this environment to test n8n webhooks for user registration, updates, and account deletions.
       </p>
     </div>
+  </main>
+
+  <!-- Webhook Settings Modal -->
+  <div class="modal-backdrop" id="webhook-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>n8n Webhook Configuration</h3>
+        <button class="btn-outline" onclick="closeModal('webhook-modal')">✕</button>
+      </div>
+      <div class="form-group">
+        <label for="n8n-register-webhook">Register Account Webhook</label>
+        <input type="url" id="n8n-register-webhook" placeholder="https://n8n.your-domain.com/webhook/..." />
+      </div>
+      <div class="form-group">
+        <label for="n8n-delete-webhook">Delete Account Webhook</label>
+        <input type="url" id="n8n-delete-webhook" placeholder="https://n8n.your-domain.com/webhook/..." />
+      </div>
+      <div class="form-group">
+        <label for="n8n-update-webhook">Update Account Webhook</label>
+        <input type="url" id="n8n-update-webhook" placeholder="https://n8n.your-domain.com/webhook/..." />
+      </div>
+      <div class="form-group">
+        <label for="n8n-order-webhook">Order Webhook</label>
+        <input type="url" id="n8n-order-webhook" placeholder="https://n8n.your-domain.com/webhook/..." />
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="closeModal('webhook-modal')">Save & Close</button>
+    </div>
   </div>
 
-  <!-- Registration Screen -->
-  <div class="container" id="register-container">
-    <div class="auth-box">
-      <h2>Create an Account</h2>
-
-      <form id="registration-form" onsubmit="handleRegistration(event)">
+  <!-- Register Modal -->
+  <div class="modal-backdrop" id="register-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Create Account</h3>
+        <button class="btn-outline" onclick="closeModal('register-modal')">✕</button>
+      </div>
+      <form onsubmit="handleRegister(event)">
         <div class="form-group">
-          <label for="reg-full-name">Full Name</label>
-          <input type="text" id="reg-full-name" required placeholder="john doe">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" required />
         </div>
         <div class="form-group">
-          <label for="reg-email">Email Address</label>
-          <input type="email" id="reg-email" required placeholder="john.doe@company.com">
-        </div>
-        <div class="form-group">
-          <label for="reg-phone">Phone Number</label>
-          <input type="tel" id="reg-phone" required placeholder="+1 (555) 019-2831">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" required />
         </div>
         <div class="form-group">
           <label for="reg-password">Password</label>
-          <input type="password" id="reg-password" required placeholder="••••••••">
+          <input type="password" id="reg-password" required />
         </div>
-        <div class="form-group">
-          <label for="reg-address">Full Address / Postal Code</label>
-          <input type="text" id="reg-address" required placeholder="123 main st, suite b, new york, ny 10001">
-        </div>
-        <div class="form-group">
-          <label for="reg-intent">Purchase Intent / Referral Notes</label>
-          <textarea id="reg-intent" placeholder="e.g. Looking to place bulk orders for my team of 50..."></textarea>
-        </div>
-        <button type="submit" class="btn btn-accent" style="width:100%" id="register-submit-btn">Register User</button>
+        <button type="submit" class="btn-primary" style="width:100%;">Register</button>
       </form>
-      <p style="text-align:center; margin-top: 15px; font-size: 0.9rem;">
-        Already registered? <a href="#" onclick="showScreen('login')">Login here</a>
-      </p>
     </div>
   </div>
 
-  <!-- Account Settings Screen -->
-  <div class="container" id="account-container">
-    <div class="auth-box" style="max-width: 550px;">
-      <h2>Manage Account</h2>
-      <p style="font-size:0.85rem; color:#666;">User ID: <strong id="acc-user-id">-</strong></p>
-      
-      <form id="account-update-form" onsubmit="handleAccountUpdate(event)">
+  <!-- Login Modal -->
+  <div class="modal-backdrop" id="login-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Log In</h3>
+        <button class="btn-outline" onclick="closeModal('login-modal')">✕</button>
+      </div>
+      <form onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label for="acc-full-name">Full Name</label>
-          <input type="text" id="acc-full-name" required>
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" required />
         </div>
         <div class="form-group">
-          <label for="acc-email">Email Address</label>
-          <input type="email" id="acc-email" required>
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required />
         </div>
-        <div class="form-group">
-          <label for="acc-phone">Phone Number</label>
-          <input type="tel" id="acc-phone" required>
-        </div>
-        <div class="form-group">
-          <label for="acc-address">Full Address / Postal Code</label>
-          <input type="text" id="acc-address" required>
-        </div>
-        
-        <button type="submit" class="btn btn-primary" style="width:100%" id="update-account-btn">Update Profile (Trigger Webhook)</button>
+        <button type="submit" class="btn-primary" style="width:100%;">Log In</button>
       </form>
-
-      <hr style="margin: 25px 0; border: none; border-top: 1px solid var(--border);">
-
-      <div style="background-color: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 6px;">
-        <h4 style="margin: 0 0 8px 0; color: #c53030;">Danger Zone</h4>
-        <p style="margin: 0 0 12px 0; font-size: 0.85rem; color: #742a2a;">Deleting your account will trigger the n8n Delete Webhook to purge records from Airtable.</p>
-        <button class="btn btn-danger btn-sm" onclick="handleAccountDelete()" id="delete-account-btn">Delete Account</button>
-      </div>
     </div>
-  </div>
-
-  <!-- Main Product Inventory Screen -->
-  <div class="container" id="inventory-container">
-    <h2>Products</h2>
-    <div class="inventory-list" id="inventory-list"></div>
-  </div>
-
-  <!-- Cart Screen -->
-  <div class="container" id="cart-container">
-    <h2>Your Cart</h2>
-    <div id="cart-list"></div>
-    <div style="margin-top:20px; display:flex; justify-content:space-between">
-      <button class="btn btn-secondary" onclick="showScreen('inventory')" id="continue-shopping">Continue Shopping</button>
-      <button class="btn btn-accent" onclick="showScreen('checkout')" id="checkout-button">Checkout</button>
-    </div>
-  </div>
-
-  <!-- Checkout Step 1: User Details -->
-  <div class="container" id="checkout-container">
-    <h2>Checkout: Information</h2>
-    <p id="autofill-notice" style="color: var(--accent); font-weight:600; display:none;">
-      ✨ Profile details automatically pre-populated from your session!
-    </p>
-    <form class="checkout-form" id="checkout-info-form" onsubmit="handleCheckoutInfo(event)">
-      <div class="form-group">
-        <label for="checkout-full-name">Full Name</label>
-        <input type="text" id="checkout-full-name" required>
-      </div>
-      <div class="form-group">
-        <label for="checkout-email">Email</label>
-        <input type="email" id="checkout-email" required>
-      </div>
-      <div class="form-group">
-        <label for="checkout-phone">Phone Number</label>
-        <input type="tel" id="checkout-phone" required>
-      </div>
-      <div class="form-group">
-        <label for="checkout-address">Shipping Address</label>
-        <input type="text" id="checkout-address" required>
-      </div>
-      
-      <div style="margin-top:20px; display:flex; justify-content:space-between">
-        <button type="button" class="btn btn-secondary" onclick="showScreen('cart')">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="continue-checkout">Continue to Overview</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Checkout Step 2: Summary -->
-  <div class="container" id="summary-container">
-    <h2>Checkout: Overview</h2>
-    <div class="checkout-summary-box">
-      <div id="summary-items-list"></div>
-      <div class="summary-item" style="border:none; margin-top:10px;">
-        <span class="total-label">Total:</span>
-        <span class="total-value" id="summary-total-price">$0.00</span>
-      </div>
-    </div>
-    
-    <div style="margin-top:20px; display:flex; justify-content:space-between">
-      <button class="btn btn-secondary" onclick="showScreen('inventory')">Cancel</button>
-      <button class="btn btn-accent" onclick="finishOrder()" id="finish-button">Finish Order</button>
-    </div>
-  </div>
-
-  <!-- Complete Screen -->
-  <div class="container" id="complete-container" style="text-align:center;">
-    <h1 style="color:var(--accent); border:none;">THANK YOU FOR YOUR ORDER!</h1>
-    <p>Your order has been placed and transmitted to n8n successfully.</p>
-    <button class="btn btn-primary" onclick="resetStore()" id="back-to-products">Back Home</button>
   </div>
 
   <script>
-    const products = [
-      { id: 'tshirt', name: 'Jervis.io Automator T-Shirt', desc: 'Get the classic automation t-shirt. High quality cotton.', price: 19.99 },
-      { id: 'backpack', name: 'Sleek Backpack', desc: 'Perfect for carrying your laptop to automation meetups.', price: 49.99 },
-      { id: 'onesie', name: 'Automation Onesie', desc: 'For the tiniest automators. Super soft.', price: 7.99 },
-      { id: 'light', name: 'Bike Light', desc: 'Stay visible while cycling. Easy attachment.', price: 9.99 },
-      { id: 'jacket', name: 'Fleece Jacket', desc: 'Warm and comfortable fleece jacket for cold days.', price: 59.99 }
-    ];
-    
-    let cart = [];
-    let currentUser = null; 
+    const WEBHOOK_STORAGE_KEY = 'n8n_store_webhook_urls';
+    const USER_STORAGE_KEY = 'n8n_store_current_user';
 
-    // --- Webhook LocalStorage Helpers ---
-    function saveWebhookUrls() {
-      const urls = {
-        register: document.getElementById('n8n-register-webhook').value,
-        update: document.getElementById('n8n-update-webhook').value,
-        delete: document.getElementById('n8n-delete-webhook').value,
-        order: document.getElementById('n8n-order-webhook').value
-      };
-      localStorage.setItem('n8n_webhook_urls', JSON.stringify(urls));
-    }
-
-    // Hardcoded default fallback
-    const DEFAULT_REGISTER_WEBHOOK = "https://n8n.mypracticeaiautomation.dpdns.org/webhook-test/register-user";
-
+    // Load webhooks from URL parameters or localStorage (NO hardcoded fallback)
     function loadWebhookUrls() {
       const urlParams = new URLSearchParams(window.location.search);
-      const regWebhookParam = urlParams.get('reg_webhook');
+      const savedUrls = localStorage.getItem(WEBHOOK_STORAGE_KEY);
+      const urls = savedUrls ? JSON.parse(savedUrls) : {};
 
-      const saved = localStorage.getItem('n8n_webhook_urls');
-      const urls = saved ? JSON.parse(saved) : {};
+      // Check URL query parameters first, then localStorage
+      const regUrl = urlParams.get('register_webhook') || urls.register || '';
+      const deleteUrl = urlParams.get('delete_webhook') || urls.delete || '';
+      const updateUrl = urlParams.get('update_webhook') || urls.update || '';
+      const orderUrl = urlParams.get('order_webhook') || urls.order || '';
 
-      // Priority: 1. URL Param -> 2. LocalStorage -> 3. Hardcoded Default
-      const regVal = regWebhookParam || urls.register || DEFAULT_REGISTER_WEBHOOK;
-      const updateVal = urlParams.get('update_webhook') || urls.update || '';
-      const deleteVal = urlParams.get('delete_webhook') || urls.delete || '';
-      const orderVal = urlParams.get('order_webhook') || urls.order || '';
+      // Populate input fields
+      const regInput = document.getElementById('n8n-register-webhook');
+      const deleteInput = document.getElementById('n8n-delete-webhook');
+      const updateInput = document.getElementById('n8n-update-webhook');
+      const orderInput = document.getElementById('n8n-order-webhook');
 
-      document.getElementById('n8n-register-webhook').value = regVal;
-      document.getElementById('n8n-update-webhook').value = updateVal;
-      document.getElementById('n8n-delete-webhook').value = deleteVal;
-      document.getElementById('n8n-order-webhook').value = orderVal;
+      if (regInput) regInput.value = regUrl;
+      if (deleteInput) deleteInput.value = deleteUrl;
+      if (updateInput) updateInput.value = updateUrl;
+      if (orderInput) orderInput.value = orderUrl;
 
-      saveWebhookUrls();
+      // Persist values to localStorage
+      saveWebhookUrls({
+        register: regUrl,
+        delete: deleteUrl,
+        update: updateUrl,
+        order: orderUrl
+      });
     }
 
-    // --- Screen Router ---
-    function showScreen(screenName) {
-      const protectedScreens = ['inventory', 'cart', 'checkout', 'summary', 'account', 'complete'];
-      if (!currentUser && protectedScreens.includes(screenName)) {
-        showStatus('Please log in or register first.', 'error');
-        screenName = 'login';
-      }
+    // Save webhooks to localStorage
+    function saveWebhookUrls(customUrls = null) {
+      const urlsToSave = customUrls || {
+        register: document.getElementById('n8n-register-webhook')?.value.trim() || '',
+        delete: document.getElementById('n8n-delete-webhook')?.value.trim() || '',
+        update: document.getElementById('n8n-update-webhook')?.value.trim() || '',
+        order: document.getElementById('n8n-order-webhook')?.value.trim() || ''
+      };
 
-      document.querySelectorAll('.container').forEach(el => el.classList.remove('active-screen'));
-      document.getElementById(`${screenName}-container`).classList.add('active-screen');
-      
-      if (screenName === 'inventory') renderInventory();
-      if (screenName === 'cart') renderCart();
-      if (screenName === 'checkout') populateCheckoutForm();
-      if (screenName === 'account') populateAccountForm();
-      if (screenName === 'summary') renderSummary();
+      localStorage.setItem(WEBHOOK_STORAGE_KEY, JSON.stringify(urlsToSave));
     }
 
-    function handleLogoClick() {
-      if (currentUser) {
-        showScreen('inventory');
-      } else {
-        showScreen('login');
-      }
+    // Modal Helpers
+    function openModal(id) {
+      document.getElementById(id)?.classList.add('active');
     }
 
-    // --- Authentication & User Settings ---
-    async function handleRegistration(event) {
-      event.preventDefault();
-      
+    function closeModal(id) {
+      document.getElementById(id)?.classList.remove('active');
+    }
+
+    // Account Actions
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+
+      const user = { name, email, createdAt: new Date().toISOString() };
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+
+      // Trigger n8n webhook if URL exists
       const webhookUrl = document.getElementById('n8n-register-webhook').value;
-
-      // Append query param to browser address bar automatically upon registration!
-      if (webhookUrl) {
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('reg_webhook', webhookUrl);
-        window.history.pushState({}, '', newUrl);
-      }
-
-      const userPayload = {
-        action: 'CREATE',
-        userId: 'USR-' + Math.floor(1000 + Math.random() * 9000),
-        fullName: document.getElementById('reg-full-name').value,
-        email: document.getElementById('reg-email').value,
-        phone: document.getElementById('reg-phone').value,
-        password: document.getElementById('reg-password').value, // <-- ADDED PASSWORD HERE
-        address: document.getElementById('reg-address').value,
-        intentNotes: document.getElementById('reg-intent').value,
-        registeredAt: new Date().toISOString()
-      };
-
-      currentUser = userPayload;
-      updateUserNav();
-      showStatus('Registration successful! Accessing store...', 'success');
-
-      // Trigger Webhook
       if (webhookUrl) {
         try {
           await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userPayload)
+            body: JSON.stringify({ action: 'register', name, email, password, timestamp: user.createdAt })
           });
-          showStatus('Registration details sent to n8n webhook!', 'success');
         } catch (err) {
-          showStatus('Registered locally, but failed to hit webhook.', 'error');
+          console.error('Webhook trigger failed:', err);
         }
       }
 
-      document.getElementById('registration-form').reset();
-      showScreen('inventory');
+      closeModal('register-modal');
+      updateAuthUI();
     }
 
-    function handleLogin(event) {
-      event.preventDefault();
+    function handleLogin(e) {
+      e.preventDefault();
       const email = document.getElementById('login-email').value;
-      
-      currentUser = {
-        userId: 'USR-EXISTING',
-        fullName: email.split('@')[0],
-        email: email,
-        phone: '+1 555-019-2831',
-        address: '123 Main St, New York, NY 10001'
-      };
-
-      updateUserNav();
-      showStatus('Logged in successfully!', 'success');
-      document.getElementById('login-form').reset();
-      showScreen('inventory');
+      const user = { name: email.split('@')[0], email, loggedInAt: new Date().toISOString() };
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      closeModal('login-modal');
+      updateAuthUI();
     }
 
-    function populateAccountForm() {
-      if (!currentUser) return;
-      document.getElementById('acc-user-id').innerText = currentUser.userId;
-      document.getElementById('acc-full-name').value = currentUser.fullName || '';
-      document.getElementById('acc-email').value = currentUser.email || '';
-      document.getElementById('acc-phone').value = currentUser.phone || '';
-      document.getElementById('acc-address').value = currentUser.address || '';
-    }
+    async function deleteAccount() {
+      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+      if (!user.email) return;
 
-    async function handleAccountUpdate(event) {
-      event.preventDefault();
-      if (!currentUser) return;
-
-      const updatePayload = {
-        action: 'UPDATE',
-        userId: currentUser.userId,
-        fullName: document.getElementById('acc-full-name').value,
-        email: document.getElementById('acc-email').value,
-        phone: document.getElementById('acc-phone').value,
-        address: document.getElementById('acc-address').value,
-        updatedAt: new Date().toISOString()
-      };
-
-      currentUser = { ...currentUser, ...updatePayload };
-      updateUserNav();
-
-      const webhookUrl = document.getElementById('n8n-update-webhook').value;
-      if (webhookUrl) {
-        try {
-          await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatePayload)
-          });
-          showStatus('Account updated & sent to n8n webhook!', 'success');
-        } catch (err) {
-          showStatus('Profile updated locally, but webhook failed.', 'error');
-        }
-      } else {
-        showStatus('Profile updated locally (No Webhook set)', 'success');
-      }
-    }
-
-    async function handleAccountDelete() {
-      if (!currentUser) return;
-      if (!confirm("Are you sure you want to delete your account? This will send a delete request to n8n.")) return;
-
-      const deletePayload = {
-        action: 'DELETE',
-        userId: currentUser.userId,
-        email: currentUser.email,
-        deletedAt: new Date().toISOString()
-      };
+      if (!confirm('Are you sure you want to delete your account?')) return;
 
       const webhookUrl = document.getElementById('n8n-delete-webhook').value;
       if (webhookUrl) {
@@ -494,211 +253,53 @@
           await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(deletePayload)
+            body: JSON.stringify({ action: 'delete_account', email: user.email, timestamp: new Date().toISOString() })
           });
-          showStatus('Delete request sent to n8n webhook!', 'success');
         } catch (err) {
-          showStatus('Delete webhook failed.', 'error');
+          console.error('Delete webhook failed:', err);
         }
       }
 
-      logoutUser();
-      showStatus('Account deleted & session ended.', 'info');
+      localStorage.removeItem(USER_STORAGE_KEY);
+      updateAuthUI();
+      alert('Account deleted.');
     }
 
-    function logoutUser() {
-      currentUser = null;
-      cart = [];
-      updateCartBadge();
-      updateUserNav();
-      showStatus('You have been logged out.');
-      showScreen('login');
+    function logout() {
+      localStorage.removeItem(USER_STORAGE_KEY);
+      updateAuthUI();
     }
 
-    function updateUserNav() {
-      const container = document.getElementById('user-nav-container');
-      const cartLink = document.getElementById('shopping-cart-link');
-      
-      if (currentUser) {
-        container.innerHTML = `
-          <span>Hello, <strong>${currentUser.fullName}</strong></span>
-          <button class="btn btn-secondary btn-sm" onclick="showScreen('account')" id="my-account-btn">Account Settings</button>
-          <button class="btn btn-secondary btn-sm" onclick="logoutUser()" id="logout-btn">Logout</button>
-        `;
-        cartLink.style.display = 'block';
+    function updateAuthUI() {
+      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || 'null');
+      const authButtons = document.getElementById('auth-buttons');
+      const userMenu = document.getElementById('user-menu');
+      const emailDisplay = document.getElementById('user-email-display');
+
+      if (user) {
+        authButtons.style.display = 'none';
+        userMenu.style.display = 'flex';
+        emailDisplay.textContent = user.email;
       } else {
-        container.innerHTML = `
-          <button class="btn btn-secondary btn-sm" onclick="showScreen('login')" id="nav-login-btn">Login</button>
-          <button class="btn btn-accent btn-sm" onclick="showScreen('register')" id="nav-register-btn">Register</button>
-        `;
-        cartLink.style.display = 'none';
+        authButtons.style.display = 'flex';
+        userMenu.style.display = 'none';
+        emailDisplay.textContent = '';
       }
     }
 
-    // --- Inventory & Cart ---
-    function renderInventory() {
-      const list = document.getElementById('inventory-list');
-      list.innerHTML = '';
-      products.forEach(p => {
-        const isInCart = cart.some(item => item.id === p.id);
-        list.innerHTML += `
-          <div class="inventory-item" id="item-${p.id}">
-            <div class="item-img-placeholder">PRODUCT</div>
-            <h3 class="item-name">${p.name}</h3>
-            <p class="item-desc">${p.desc}</p>
-            <div class="item-price-space">
-              <span class="item-price">$${p.price.toFixed(2)}</span>
-              ${isInCart 
-                ? `<button class="btn btn-remove" onclick="removeFromCart('${p.id}')" id="remove-${p.id}">Remove</button>`
-                : `<button class="btn btn-primary" onclick="addToCart('${p.id}')" id="add-to-cart-${p.id}">Add to Cart</button>`
-              }
-            </div>
-          </div>
-        `;
-      });
-    }
+    // Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      loadWebhookUrls();
+      updateAuthUI();
 
-    function addToCart(productId) {
-      const product = products.find(p => p.id === productId);
-      if (product) {
-        cart.push(product);
-        updateCartBadge();
-        renderInventory();
-        showStatus('Item added to cart!');
-      }
-    }
-
-    function removeFromCart(productId) {
-      cart = cart.filter(item => item.id !== productId);
-      updateCartBadge();
-      if (document.getElementById('cart-container').classList.contains('active-screen')) {
-        renderCart();
-      } else {
-        renderInventory();
-      }
-      showStatus('Item removed from cart!');
-    }
-
-    function updateCartBadge() {
-      const badge = document.getElementById('cart-quantity-badge');
-      badge.innerText = cart.length;
-      badge.style.display = cart.length > 0 ? 'block' : 'none';
-    }
-
-    function renderCart() {
-      const list = document.getElementById('cart-list');
-      const checkoutBtn = document.getElementById('checkout-button');
-      list.innerHTML = '';
-      
-      if (cart.length === 0) {
-        list.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Cart is empty.</p>';
-        checkoutBtn.style.display = 'none';
-        return;
-      }
-      checkoutBtn.style.display = 'block';
-
-      cart.forEach(p => {
-        list.innerHTML += `
-          <div class="cart-item" id="cart-item-${p.id}">
-            <div>
-              <div class="item-name" style="font-size:1.1rem">${p.name}</div>
-              <div class="item-price" style="font-size:1.1rem">$${p.price.toFixed(2)}</div>
-            </div>
-            <button class="btn btn-secondary btn-remove" onclick="removeFromCart('${p.id}')" id="cart-remove-${p.id}">Remove</button>
-          </div>
-        `;
-      });
-    }
-
-    // --- Checkout Logic ---
-    function populateCheckoutForm() {
-      const notice = document.getElementById('autofill-notice');
-      if (currentUser) {
-        document.getElementById('checkout-full-name').value = currentUser.fullName || '';
-        document.getElementById('checkout-email').value = currentUser.email || '';
-        document.getElementById('checkout-phone').value = currentUser.phone || '';
-        document.getElementById('checkout-address').value = currentUser.address || '';
-        notice.style.display = 'block';
-      } else {
-        notice.style.display = 'none';
-      }
-    }
-
-    function handleCheckoutInfo(event) {
-      event.preventDefault();
-      showScreen('summary');
-    }
-
-    function renderSummary() {
-      const list = document.getElementById('summary-items-list');
-      const totalEl = document.getElementById('summary-total-price');
-      list.innerHTML = '';
-      let total = 0;
-
-      cart.forEach(p => {
-        total += p.price;
-        list.innerHTML += `
-          <div class="summary-item">
-            <span>${p.name}</span>
-            <span class="item-price">$${p.price.toFixed(2)}</span>
-          </div>
-        `;
-      });
-      totalEl.innerText = `$${total.toFixed(2)}`;
-    }
-
-    async function finishOrder() {
-      showStatus('Processing order...');
-      const webhookUrl = document.getElementById('n8n-order-webhook').value;
-      const total = cart.reduce((sum, p) => sum + p.price, 0);
-
-      const orderPayload = {
-        orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
-        timestamp: new Date().toISOString(),
-        customer: {
-          fullName: document.getElementById('checkout-full-name').value,
-          email: document.getElementById('checkout-email').value,
-          phone: document.getElementById('checkout-phone').value,
-          address: document.getElementById('checkout-address').value
-        },
-        items: cart,
-        totalAmount: total
-      };
-
-      if (webhookUrl) {
-        try {
-          await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderPayload)
-          });
-          showStatus('Order sent to n8n webhook successfully!', 'success');
-        } catch (error) {
-          showStatus('Could not connect to Order Webhook.', 'error');
+      const inputs = ['n8n-register-webhook', 'n8n-delete-webhook', 'n8n-update-webhook', 'n8n-order-webhook'];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', () => saveWebhookUrls());
         }
-      }
-      showScreen('complete');
-    }
-
-    function resetStore() {
-      cart = [];
-      updateCartBadge();
-      document.getElementById('checkout-info-form').reset();
-      showScreen('inventory');
-    }
-
-    function showStatus(text, type = 'info') {
-      const el = document.getElementById('status-message');
-      el.innerText = text;
-      el.className = '';
-      el.classList.add(`status-${type}`);
-      el.style.display = 'block';
-      setTimeout(() => el.style.display = 'none', 4000);
-    }
-
-    // Init App
-    loadWebhookUrls();
-    updateUserNav();
+      });
+    });
   </script>
 </body>
 </html>
