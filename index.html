@@ -22,7 +22,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
     
-    header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; sticky: top; }
+    header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); }
     nav { display: flex; gap: 1rem; align-items: center; }
     
@@ -39,6 +39,11 @@
     main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     
+    .login-hero { max-width: 480px; margin: 4rem auto; text-align: center; }
+    .login-hero h2 { margin-bottom: 0.5rem; }
+    .login-hero p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .login-hero .btn-group { display: flex; gap: 1rem; justify-content: center; }
+
     /* Product Grid & Cards */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
     .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -83,27 +88,39 @@
   </header>
 
   <main>
-    <div class="card">
+    <!-- Guest View: Homepage Prompt -->
+    <div id="guest-view" class="card login-hero">
       <h2>Welcome to Automation Store</h2>
-      <p style="margin-top: 0.5rem; color: var(--text-muted);">
-        Test your n8n workflows by performing account actions or completing dummy checkouts. All actions route to your Universal Webhook URL.
-      </p>
+      <p>Please log in or create an account to view the catalog and place orders.</p>
+      <div class="btn-group">
+        <button class="btn-primary" onclick="openModal('login-modal')">Log In</button>
+        <button class="btn-outline" onclick="openModal('register-modal')">Register</button>
+      </div>
     </div>
 
-    <!-- E-Commerce Storefront -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Product Catalog</h3>
-        <span style="font-size: 0.875rem; color: var(--text-muted);" id="page-indicator">Page 1 of 5</span>
+    <!-- Authenticated View: Product Catalog (Hidden by default) -->
+    <div id="catalog-view" style="display:none;">
+      <div class="card">
+        <h2>Member Dashboard</h2>
+        <p style="margin-top: 0.5rem; color: var(--text-muted);">
+          Test your n8n workflows by placing test orders from the catalog below.
+        </p>
       </div>
 
-      <div class="product-grid" id="product-grid">
-        <!-- Products injected via JS -->
-      </div>
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3>Product Catalog</h3>
+          <span style="font-size: 0.875rem; color: var(--text-muted);" id="page-indicator">Page 1 of 5</span>
+        </div>
 
-      <!-- Pagination Controls -->
-      <div class="pagination" id="pagination">
-        <!-- Page buttons injected via JS -->
+        <div class="product-grid" id="product-grid">
+          <!-- Products injected via JS -->
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination" id="pagination">
+          <!-- Page buttons injected via JS -->
+        </div>
       </div>
     </div>
   </main>
@@ -170,11 +187,11 @@
       <form onsubmit="handleLogin(event)">
         <div class="form-group">
           <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" required />
+          <input type="email" id="login-email" required placeholder="john@example.com" />
         </div>
         <div class="form-group">
           <label for="login-password">Password</label>
-          <input type="password" id="login-password" required />
+          <input type="password" id="login-password" required placeholder="••••••••" />
         </div>
         <button type="submit" class="btn-primary" style="width:100%;">Log In</button>
       </form>
@@ -402,15 +419,29 @@
       const authButtons = document.getElementById('auth-buttons');
       const userMenu = document.getElementById('user-menu');
       const emailDisplay = document.getElementById('user-email-display');
+      
+      const guestView = document.getElementById('guest-view');
+      const catalogView = document.getElementById('catalog-view');
 
       if (user) {
+        // Show Logged-in State
         authButtons.style.display = 'none';
         userMenu.style.display = 'flex';
         emailDisplay.textContent = user.email;
+
+        // Show Catalog, Hide Guest Homepage
+        guestView.style.display = 'none';
+        catalogView.style.display = 'block';
+        renderProducts(1);
       } else {
+        // Show Guest State
         authButtons.style.display = 'flex';
         userMenu.style.display = 'none';
         emailDisplay.textContent = '';
+
+        // Show Guest Homepage, Hide Catalog
+        guestView.style.display = 'block';
+        catalogView.style.display = 'none';
       }
     }
 
@@ -418,7 +449,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadWebhookUrls();
       updateAuthUI();
-      renderProducts(1);
 
       const el = document.getElementById('n8n-universal-webhook');
       if (el) {
