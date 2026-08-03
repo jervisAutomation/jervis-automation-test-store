@@ -24,7 +24,7 @@
     
     header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); }
-    nav { display: flex; gap: 1rem; align-items: center; }
+    nav { display: flex; gap: 0.75rem; align-items: center; }
     
     button { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; border: none; transition: all 0.2s; }
     .btn-primary { background: var(--primary); color: white; }
@@ -66,7 +66,7 @@
     .modal { background: var(--card-bg); width: 90%; max-width: 500px; border-radius: 0.5rem; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     
-    .user-badge { font-size: 0.875rem; color: var(--text-muted); }
+    .user-badge { font-size: 0.875rem; color: var(--text-muted); margin-right: 0.5rem; }
   </style>
 </head>
 <body>
@@ -75,13 +75,19 @@
     <div class="logo">Automation Store</div>
     <nav>
       <button class="btn-outline" onclick="openModal('webhook-modal')">⚙️ Webhook</button>
+      
+      <!-- Guest Navigation -->
       <div id="auth-buttons">
         <button class="btn-outline" onclick="openModal('login-modal')">Log In</button>
         <button class="btn-primary" onclick="openModal('register-modal')">Register</button>
       </div>
-      <div id="user-menu" style="display:none;">
+
+      <!-- Logged-In Navigation -->
+      <div id="user-menu" style="display:none; align-items: center; gap: 0.5rem;">
         <span class="user-badge" id="user-email-display"></span>
-        <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
+        <button class="btn-outline" id="nav-catalog-btn" onclick="switchTab('catalog')" style="display:none;">Catalog</button>
+        <button class="btn-outline" id="nav-profile-btn" onclick="switchTab('profile')">👤 Profile</button>
+        <button class="btn-danger" onclick="deleteAccount()">Delete</button>
         <button class="btn-outline" onclick="logout()">Logout</button>
       </div>
     </nav>
@@ -91,14 +97,14 @@
     <!-- Guest View: Homepage Prompt -->
     <div id="guest-view" class="card login-hero">
       <h2>Welcome to Automation Store</h2>
-      <p>Please log in or create an account to view the catalog and place orders.</p>
+      <p>Please log in or create an account to view the catalog and manage your profile.</p>
       <div class="btn-group">
         <button class="btn-primary" onclick="openModal('login-modal')">Log In</button>
         <button class="btn-outline" onclick="openModal('register-modal')">Register</button>
       </div>
     </div>
 
-    <!-- Authenticated View: Product Catalog (Hidden by default) -->
+    <!-- Authenticated View: Product Catalog -->
     <div id="catalog-view" style="display:none;">
       <div class="card">
         <h2>Member Dashboard</h2>
@@ -121,6 +127,43 @@
         <div class="pagination" id="pagination">
           <!-- Page buttons injected via JS -->
         </div>
+      </div>
+    </div>
+
+    <!-- Authenticated View: Profile Page -->
+    <div id="profile-view" style="display:none;">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2>My Profile</h2>
+          <button class="btn-outline" onclick="switchTab('catalog')">← Back to Catalog</button>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.875rem;">
+          Update your account details below. Submitting changes sends an <strong>update_profile</strong> event payload to your n8n universal webhook.
+        </p>
+        
+        <form onsubmit="handleProfileUpdate(event)">
+          <div class="form-group">
+            <label for="prof-name">Full Name</label>
+            <input type="text" id="prof-name" required />
+          </div>
+          <div class="form-group">
+            <label for="prof-email">Email Address (Read-Only)</label>
+            <input type="email" id="prof-email" disabled style="background-color: #f1f5f9; cursor: not-allowed;" />
+          </div>
+          <div class="form-group">
+            <label for="prof-phone">Phone Number</label>
+            <input type="tel" id="prof-phone" required />
+          </div>
+          <div class="form-group">
+            <label for="prof-address">Full Address / Postal Code</label>
+            <textarea id="prof-address" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="prof-notes">Purchase Intent / Referral Notes</label>
+            <textarea id="prof-notes"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%;">Save & Update Profile</button>
+        </form>
       </div>
     </div>
   </main>
@@ -239,6 +282,28 @@
     let currentPage = 1;
     const itemsPerPage = 5;
 
+    // View Switching Logic
+    function switchTab(tab) {
+      const catalogView = document.getElementById('catalog-view');
+      const profileView = document.getElementById('profile-view');
+      const catalogBtn = document.getElementById('nav-catalog-btn');
+      const profileBtn = document.getElementById('nav-profile-btn');
+
+      if (tab === 'profile') {
+        catalogView.style.display = 'none';
+        profileView.style.display = 'block';
+        catalogBtn.style.display = 'inline-block';
+        profileBtn.style.display = 'none';
+        populateProfileForm();
+      } else {
+        catalogView.style.display = 'block';
+        profileView.style.display = 'none';
+        catalogBtn.style.display = 'none';
+        profileBtn.style.display = 'inline-block';
+        renderProducts(1);
+      }
+    }
+
     // Render Store Items
     function renderProducts(page = 1) {
       currentPage = page;
@@ -339,7 +404,7 @@
       const fullAddress = document.getElementById('reg-address').value;
       const notes = document.getElementById('reg-notes').value;
 
-      const user = { name: fullName, email, phone, createdAt: new Date().toISOString() };
+      const user = { name: fullName, email, phone, fullAddress, notes, createdAt: new Date().toISOString() };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
       await sendEventToWebhook({
@@ -360,10 +425,62 @@
     function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
-      const user = { name: email.split('@')[0], email, loggedInAt: new Date().toISOString() };
+      const existingUser = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+      
+      const user = {
+        name: existingUser.name || email.split('@')[0],
+        email: email,
+        phone: existingUser.phone || '',
+        fullAddress: existingUser.fullAddress || '',
+        notes: existingUser.notes || '',
+        loggedInAt: new Date().toISOString()
+      };
+
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       closeModal('login-modal');
       updateAuthUI();
+    }
+
+    // Populate Profile Form
+    function populateProfileForm() {
+      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+      document.getElementById('prof-name').value = user.name || '';
+      document.getElementById('prof-email').value = user.email || '';
+      document.getElementById('prof-phone').value = user.phone || '';
+      document.getElementById('prof-address').value = user.fullAddress || '';
+      document.getElementById('prof-notes').value = user.notes || '';
+    }
+
+    // Handle Profile Update Event
+    async function handleProfileUpdate(e) {
+      e.preventDefault();
+      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+
+      const fullName = document.getElementById('prof-name').value;
+      const phone = document.getElementById('prof-phone').value;
+      const fullAddress = document.getElementById('prof-address').value;
+      const notes = document.getElementById('prof-notes').value;
+
+      // Update stored user object
+      user.name = fullName;
+      user.phone = phone;
+      user.fullAddress = fullAddress;
+      user.notes = notes;
+      user.updatedAt = new Date().toISOString();
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+
+      // Payload engineered for direct Airtable update
+      await sendEventToWebhook({
+        action: 'update_profile',
+        fullName,
+        email: user.email,
+        phone,
+        fullAddress,
+        notes,
+        timestamp: user.updatedAt
+      });
+
+      alert('Profile updated successfully! Event dispatched to n8n.');
     }
 
     async function deleteAccount() {
@@ -422,26 +539,27 @@
       
       const guestView = document.getElementById('guest-view');
       const catalogView = document.getElementById('catalog-view');
+      const profileView = document.getElementById('profile-view');
 
       if (user) {
-        // Show Logged-in State
+        // Show Logged-in Header Controls
         authButtons.style.display = 'none';
         userMenu.style.display = 'flex';
         emailDisplay.textContent = user.email;
 
-        // Show Catalog, Hide Guest Homepage
+        // Default to Catalog view when logging in
         guestView.style.display = 'none';
-        catalogView.style.display = 'block';
-        renderProducts(1);
+        switchTab('catalog');
       } else {
-        // Show Guest State
+        // Show Guest Header Controls
         authButtons.style.display = 'flex';
         userMenu.style.display = 'none';
         emailDisplay.textContent = '';
 
-        // Show Guest Homepage, Hide Catalog
+        // Show Guest Homepage, Hide Authenticated Views
         guestView.style.display = 'block';
         catalogView.style.display = 'none';
+        profileView.style.display = 'none';
       }
     }
 
