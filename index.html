@@ -22,7 +22,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
     
-    header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; sticky: top; }
     .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); }
     nav { display: flex; gap: 1rem; align-items: center; }
     
@@ -36,10 +36,20 @@
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: var(--danger-hover); }
     
-    main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     
-    .product-box { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    /* Product Grid & Cards */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .product-img { width: 100%; height: 140px; object-fit: cover; border-radius: 0.375rem; margin-bottom: 0.75rem; background: #eee; }
+    .product-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .product-price { font-size: 1.125rem; font-weight: 700; color: var(--primary); margin-bottom: 0.75rem; }
+    
+    /* Pagination */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; }
+    .page-btn { padding: 0.4rem 0.8rem; font-size: 0.875rem; }
+    .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
     .form-group { margin-bottom: 1rem; }
     label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; }
@@ -76,15 +86,24 @@
     <div class="card">
       <h2>Welcome to Automation Store</h2>
       <p style="margin-top: 0.5rem; color: var(--text-muted);">
-        Use this environment to test n8n webhooks for user registration, updates, account deletions, and checkout orders through a single webhook URL.
+        Test your n8n workflows by performing account actions or completing dummy checkouts. All actions route to your Universal Webhook URL.
       </p>
+    </div>
 
-      <div class="product-box">
-        <div>
-          <strong>Sample Demo Product</strong>
-          <p style="color: var(--text-muted); font-size: 0.875rem;">Price: $49.99</p>
-        </div>
-        <button class="btn-success" onclick="handleCheckout()">Checkout ($49.99)</button>
+    <!-- E-Commerce Storefront -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Product Catalog</h3>
+        <span style="font-size: 0.875rem; color: var(--text-muted);" id="page-indicator">Page 1 of 5</span>
+      </div>
+
+      <div class="product-grid" id="product-grid">
+        <!-- Products injected via JS -->
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination" id="pagination">
+        <!-- Page buttons injected via JS -->
       </div>
     </div>
   </main>
@@ -166,6 +185,85 @@
     const WEBHOOK_STORAGE_KEY = 'n8n_store_webhook_urls';
     const USER_STORAGE_KEY = 'n8n_store_current_user';
 
+    // 25 Products (5 pages x 5 items each)
+    const PRODUCTS = [
+      // Page 1
+      { id: 'PROD-101', name: 'Wireless Ergonomic Mouse', price: 29.99, image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&q=80' },
+      { id: 'PROD-102', name: 'Mechanical RGB Keyboard', price: 89.99, image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&q=80' },
+      { id: 'PROD-103', name: 'Ultra-Wide 4K Monitor', price: 349.50, image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300&q=80' },
+      { id: 'PROD-104', name: 'Noise-Canceling Headphones', price: 199.00, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80' },
+      { id: 'PROD-105', name: 'HD USB Web Camera', price: 45.00, image: 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?w=300&q=80' },
+      // Page 2
+      { id: 'PROD-106', name: 'Smart Fitness Watch', price: 129.95, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80' },
+      { id: 'PROD-107', name: 'Aluminum Laptop Stand', price: 34.99, image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300&q=80' },
+      { id: 'PROD-108', name: 'Portable SSD 1TB', price: 115.00, image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=300&q=80' },
+      { id: 'PROD-109', name: 'Fast Wireless Charger', price: 22.50, image: 'https://images.unsplash.com/photo-1622445268465-842730bf11a1?w=300&q=80' },
+      { id: 'PROD-110', name: 'Bluetooth Smart Speaker', price: 79.99, image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=300&q=80' },
+      // Page 3
+      { id: 'PROD-111', name: 'USB-C Docking Station', price: 85.00, image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=300&q=80' },
+      { id: 'PROD-112', name: 'Ergonomic Desk Chair', price: 249.99, image: 'https://images.unsplash.com/photo-1580481072645-022f9a6d1270?w=300&q=80' },
+      { id: 'PROD-113', name: 'Smart LED Desk Lamp', price: 39.99, image: 'https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=300&q=80' },
+      { id: 'PROD-114', name: 'High-Speed Wi-Fi Router', price: 149.00, image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=300&q=80' },
+      { id: 'PROD-115', name: 'Studio Condenser Microphone', price: 99.50, image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=300&q=80' },
+      // Page 4
+      { id: 'PROD-116', name: 'Electric Standing Desk', price: 420.00, image: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=300&q=80' },
+      { id: 'PROD-117', name: 'Anti-Glare Screen Protector', price: 18.99, image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300&q=80' },
+      { id: 'PROD-118', name: 'Gaming Controller Pad', price: 59.99, image: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?w=300&q=80' },
+      { id: 'PROD-119', name: 'External DVD Drive', price: 27.50, image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=300&q=80' },
+      { id: 'PROD-120', name: 'Cable Management Box Kit', price: 15.99, image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=300&q=80' },
+      // Page 5
+      { id: 'PROD-121', name: 'Smart Security Camera', price: 69.99, image: 'https://images.unsplash.com/photo-1557324232-b8917d3c3dcb?w=300&q=80' },
+      { id: 'PROD-122', name: 'Wireless Presenter Clicker', price: 21.00, image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&q=80' },
+      { id: 'PROD-123', name: 'Portable Solar Power Bank', price: 49.95, image: 'https://images.unsplash.com/photo-1622445268465-842730bf11a1?w=300&q=80' },
+      { id: 'PROD-124', name: 'Thermal Label Printer', price: 139.99, image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=300&q=80' },
+      { id: 'PROD-125', name: 'Bluetooth Earbuds Case', price: 74.50, image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=300&q=80' }
+    ];
+
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    // Render Store Items
+    function renderProducts(page = 1) {
+      currentPage = page;
+      const grid = document.getElementById('product-grid');
+      grid.innerHTML = '';
+
+      const startIndex = (page - 1) * itemsPerPage;
+      const paginatedItems = PRODUCTS.slice(startIndex, startIndex + itemsPerPage);
+
+      paginatedItems.forEach(product => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'product-card';
+        itemEl.innerHTML = `
+          <div>
+            <img class="product-img" src="${product.image}" alt="${product.name}" />
+            <div class="product-title">${product.name}</div>
+            <div class="product-price">$${product.price.toFixed(2)}</div>
+          </div>
+          <button class="btn-success" style="width:100%; margin-top:0.5rem;" onclick="handleCheckout('${product.id}')">Buy Now</button>
+        `;
+        grid.appendChild(itemEl);
+      });
+
+      renderPagination();
+      document.getElementById('page-indicator').textContent = `Page ${currentPage} of ${Math.ceil(PRODUCTS.length / itemsPerPage)}`;
+    }
+
+    // Render Pagination Buttons
+    function renderPagination() {
+      const nav = document.getElementById('pagination');
+      nav.innerHTML = '';
+      const totalPages = Math.ceil(PRODUCTS.length / itemsPerPage);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = `btn-outline page-btn ${i === currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => renderProducts(i);
+        nav.appendChild(btn);
+      }
+    }
+
     // Load webhook URL from URL parameter or localStorage
     function loadWebhookUrls() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -227,7 +325,6 @@
       const user = { name: fullName, email, phone, createdAt: new Date().toISOString() };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
-      // Payload engineered for direct Airtable column mapping
       await sendEventToWebhook({
         action: 'register',
         fullName,
@@ -269,13 +366,16 @@
       alert('Account deleted.');
     }
 
-    async function handleCheckout() {
+    // Checkout Event
+    async function handleCheckout(productId) {
       const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+      const product = PRODUCTS.find(p => p.id === productId);
+      if (!product) return;
 
       const checkoutData = {
         action: 'checkout',
         orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
-        amount: 49.99,
+        amount: product.price,
         currency: 'USD',
         customer: {
           email: user.email || 'guest@example.com',
@@ -283,13 +383,13 @@
           phone: user.phone || 'N/A'
         },
         items: [
-          { name: 'Sample Demo Product', quantity: 1, price: 49.99 }
+          { id: product.id, name: product.name, quantity: 1, price: product.price }
         ],
         timestamp: new Date().toISOString()
       };
 
       await sendEventToWebhook(checkoutData);
-      alert(`Order placed successfully! Event (${checkoutData.orderId}) sent to n8n.`);
+      alert(`Order (${checkoutData.orderId}) for "${product.name}" ($${product.price}) sent to n8n!`);
     }
 
     function logout() {
@@ -318,6 +418,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadWebhookUrls();
       updateAuthUI();
+      renderProducts(1);
 
       const el = document.getElementById('n8n-universal-webhook');
       if (el) {
