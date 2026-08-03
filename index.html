@@ -138,10 +138,14 @@
           <button class="btn-outline" onclick="switchTab('catalog')">← Back to Catalog</button>
         </div>
         <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.875rem;">
-          Update your account details below. Submitting changes sends an <strong>update_profile</strong> event payload to your n8n universal webhook.
+          Update your account details below. Submitting changes sends an <strong>update_profile</strong> event with your unique primary key (<strong>userId</strong>) to your n8n universal webhook.
         </p>
         
         <form onsubmit="handleProfileUpdate(event)">
+          <div class="form-group">
+            <label for="prof-id">User ID (Primary Key)</label>
+            <input type="text" id="prof-id" disabled style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 600;" />
+          </div>
           <div class="form-group">
             <label for="prof-name">Full Name</label>
             <input type="text" id="prof-name" required />
@@ -244,6 +248,11 @@
   <script>
     const WEBHOOK_STORAGE_KEY = 'n8n_store_webhook_urls';
     const USER_STORAGE_KEY = 'n8n_store_current_user';
+
+    // Helper to generate a unique Primary Key ID
+    function generateUserId() {
+      return 'USR-' + Math.floor(100000 + Math.random() * 900000);
+    }
 
     // 25 Products (5 pages x 5 items each)
     const PRODUCTS = [
@@ -397,6 +406,7 @@
     // Account Actions
     async function handleRegister(e) {
       e.preventDefault();
+      const userId = generateUserId(); // Unique Primary Key for Airtable
       const fullName = document.getElementById('reg-name').value;
       const email = document.getElementById('reg-email').value;
       const phone = document.getElementById('reg-phone').value;
@@ -404,11 +414,12 @@
       const fullAddress = document.getElementById('reg-address').value;
       const notes = document.getElementById('reg-notes').value;
 
-      const user = { name: fullName, email, phone, fullAddress, notes, createdAt: new Date().toISOString() };
+      const user = { userId, name: fullName, email, phone, fullAddress, notes, createdAt: new Date().toISOString() };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
       await sendEventToWebhook({
         action: 'register',
+        userId,
         fullName,
         email,
         phone,
@@ -428,6 +439,7 @@
       const existingUser = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
       
       const user = {
+        userId: existingUser.userId || generateUserId(),
         name: existingUser.name || email.split('@')[0],
         email: email,
         phone: existingUser.phone || '',
@@ -444,6 +456,7 @@
     // Populate Profile Form
     function populateProfileForm() {
       const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+      document.getElementById('prof-id').value = user.userId || 'N/A';
       document.getElementById('prof-name').value = user.name || '';
       document.getElementById('prof-email').value = user.email || '';
       document.getElementById('prof-phone').value = user.phone || '';
@@ -469,9 +482,10 @@
       user.updatedAt = new Date().toISOString();
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
-      // Payload engineered for direct Airtable update
+      // Payload engineered for direct Airtable update using userId
       await sendEventToWebhook({
         action: 'update_profile',
+        userId: user.userId,
         fullName,
         email: user.email,
         phone,
@@ -487,10 +501,11 @@
       const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
       if (!user.email) return;
 
-      if (!confirm('Are you sure you want to delete your account?')) return;
+      if (!confirm(`Are you sure you want to delete account (${user.userId})?`)) return;
 
       await sendEventToWebhook({
         action: 'delete_account',
+        userId: user.userId,
         email: user.email,
         timestamp: new Date().toISOString()
       });
@@ -512,6 +527,7 @@
         amount: product.price,
         currency: 'USD',
         customer: {
+          userId: user.userId || 'GUEST',
           email: user.email || 'guest@example.com',
           name: user.name || 'Guest User',
           phone: user.phone || 'N/A'
@@ -545,7 +561,7 @@
         // Show Logged-in Header Controls
         authButtons.style.display = 'none';
         userMenu.style.display = 'flex';
-        emailDisplay.textContent = user.email;
+        emailDisplay.textContent = `${user.email} (${user.userId || 'No ID'})`;
 
         // Default to Catalog view when logging in
         guestView.style.display = 'none';
