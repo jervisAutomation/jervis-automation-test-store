@@ -15,8 +15,6 @@
       --border: #e2e8f0;
       --danger: #ef4444;
       --danger-hover: #dc2626;
-      --success: #10b981;
-      --success-hover: #059669;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,8 +27,6 @@
     button { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; border: none; transition: all 0.2s; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: var(--success-hover); }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-outline:hover { background: #f1f5f9; }
     .btn-danger { background: var(--danger); color: white; }
@@ -39,8 +35,6 @@
     main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     
-    .product-box { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-
     .form-group { margin-bottom: 1rem; }
     label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; }
     input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; font-size: 1rem; }
@@ -58,14 +52,13 @@
   <header>
     <div class="logo">Automation Store</div>
     <nav>
-      <button class="btn-outline" onclick="openModal('webhook-modal')">⚙️ Webhook</button>
+      <button class="btn-outline" onclick="openModal('webhook-modal')">⚙️ Webhooks</button>
       <div id="auth-buttons">
         <button class="btn-outline" onclick="openModal('login-modal')">Log In</button>
         <button class="btn-primary" onclick="openModal('register-modal')">Register</button>
       </div>
       <div id="user-menu" style="display:none;">
         <span class="user-badge" id="user-email-display"></span>
-        <button class="btn-outline" onclick="openModal('update-modal')">Update Profile</button>
         <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
         <button class="btn-outline" onclick="logout()">Logout</button>
       </div>
@@ -76,20 +69,12 @@
     <div class="card">
       <h2>Welcome to Automation Store</h2>
       <p style="margin-top: 0.5rem; color: var(--text-muted);">
-        All actions (Register, Profile Update, Account Delete, Checkout) are routed to a single n8n Webhook URL.
+        Use this environment to test n8n webhooks for user registration, updates, and account deletions.
       </p>
-
-      <div class="product-box">
-        <div>
-          <strong>Sample Demo Product</strong>
-          <p style="color: var(--text-muted); font-size: 0.875rem;">Price: $49.99</p>
-        </div>
-        <button class="btn-success" onclick="handleCheckout()">Checkout ($49.99)</button>
-      </div>
     </div>
   </main>
 
-  <!-- Single Webhook Settings Modal -->
+  <!-- Webhook Settings Modal -->
   <div class="modal-backdrop" id="webhook-modal">
     <div class="modal">
       <div class="modal-header">
@@ -97,8 +82,12 @@
         <button class="btn-outline" onclick="closeModal('webhook-modal')">✕</button>
       </div>
       <div class="form-group">
-        <label for="n8n-global-webhook">Global Webhook URL (All Events)</label>
-        <input type="url" id="n8n-global-webhook" placeholder="https://n8n.your-domain.com/webhook/store-events" />
+        <label for="n8n-user-webhook">User Events Webhook (Register, Delete, Update)</label>
+        <input type="url" id="n8n-user-webhook" placeholder="https://n8n.your-domain.com/webhook/..." />
+      </div>
+      <div class="form-group">
+        <label for="n8n-order-webhook">Order Webhook</label>
+        <input type="url" id="n8n-order-webhook" placeholder="https://n8n.your-domain.com/webhook/..." />
       </div>
       <button class="btn-primary" style="width:100%;" onclick="closeModal('webhook-modal')">Save & Close</button>
     </div>
@@ -129,23 +118,6 @@
     </div>
   </div>
 
-  <!-- Update Profile Modal -->
-  <div class="modal-backdrop" id="update-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Update Profile</h3>
-        <button class="btn-outline" onclick="closeModal('update-modal')">✕</button>
-      </div>
-      <form onsubmit="handleUpdate(event)">
-        <div class="form-group">
-          <label for="update-name">Full Name</label>
-          <input type="text" id="update-name" required />
-        </div>
-        <button type="submit" class="btn-primary" style="width:100%;">Save Changes</button>
-      </form>
-    </div>
-  </div>
-
   <!-- Login Modal -->
   <div class="modal-backdrop" id="login-modal">
     <div class="modal">
@@ -168,51 +140,45 @@
   </div>
 
   <script>
-    const WEBHOOK_STORAGE_KEY = 'n8n_store_global_webhook_url';
+    const WEBHOOK_STORAGE_KEY = 'n8n_store_webhook_urls';
     const USER_STORAGE_KEY = 'n8n_store_current_user';
 
-    // Load single webhook from URL parameter or localStorage
-    function loadWebhookUrl() {
+    // Load webhooks from URL parameters or localStorage (NO hardcoded fallback)
+    function loadWebhookUrls() {
       const urlParams = new URLSearchParams(window.location.search);
-      const savedUrl = localStorage.getItem(WEBHOOK_STORAGE_KEY) || '';
+      const savedUrls = localStorage.getItem(WEBHOOK_STORAGE_KEY);
+      const urls = savedUrls ? JSON.parse(savedUrls) : {};
 
-      const webhookUrl = urlParams.get('webhook_url') || urlParams.get('webhook') || savedUrl;
+      // Check URL query parameters first, then localStorage
+      const userUrl = urlParams.get('user_webhook') || urls.user || '';
+      const orderUrl = urlParams.get('order_webhook') || urls.order || '';
 
-      const input = document.getElementById('n8n-global-webhook');
-      if (input) input.value = webhookUrl;
+      // Populate input fields
+      const userInput = document.getElementById('n8n-user-webhook');
+      const orderInput = document.getElementById('n8n-order-webhook');
 
-      saveWebhookUrl(webhookUrl);
+      if (userInput) userInput.value = userUrl;
+      if (orderInput) orderInput.value = orderUrl;
+
+      // Persist values to localStorage
+      saveWebhookUrls({
+        user: userUrl,
+        order: orderUrl
+      });
     }
 
-    // Save webhook URL to localStorage
-    function saveWebhookUrl(customUrl = null) {
-      const urlToSave = customUrl !== null ? customUrl : document.getElementById('n8n-global-webhook')?.value.trim() || '';
-      localStorage.setItem(WEBHOOK_STORAGE_KEY, urlToSave);
-    }
+    // Save webhooks to localStorage
+    function saveWebhookUrls(customUrls = null) {
+      const urlsToSave = customUrls || {
+        user: document.getElementById('n8n-user-webhook')?.value.trim() || '',
+        order: document.getElementById('n8n-order-webhook')?.value.trim() || ''
+      };
 
-    // Unified helper to send ANY event to the single n8n Webhook
-    async function sendEventToN8n(payload) {
-      const webhookUrl = document.getElementById('n8n-global-webhook')?.value;
-      if (!webhookUrl) return;
-
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch (err) {
-        console.error(`Failed to send ${payload.action} event to n8n:`, err);
-      }
+      localStorage.setItem(WEBHOOK_STORAGE_KEY, JSON.stringify(urlsToSave));
     }
 
     // Modal Helpers
     function openModal(id) {
-      if (id === 'update-modal') {
-        const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
-        const updateNameInput = document.getElementById('update-name');
-        if (updateNameInput && user.name) updateNameInput.value = user.name;
-      }
       document.getElementById(id)?.classList.add('active');
     }
 
@@ -220,7 +186,7 @@
       document.getElementById(id)?.classList.remove('active');
     }
 
-    // Handlers
+    // Account Actions
     async function handleRegister(e) {
       e.preventDefault();
       const name = document.getElementById('reg-name').value;
@@ -230,75 +196,22 @@
       const user = { name, email, createdAt: new Date().toISOString() };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 
-      await sendEventToN8n({
-        action: 'register',
-        name,
-        email,
-        password,
-        timestamp: user.createdAt
-      });
+      // Trigger n8n webhook if URL exists
+      const webhookUrl = document.getElementById('n8n-user-webhook').value;
+      if (webhookUrl) {
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'register', name, email, password, timestamp: user.createdAt })
+          });
+        } catch (err) {
+          console.error('Webhook trigger failed:', err);
+        }
+      }
 
       closeModal('register-modal');
       updateAuthUI();
-    }
-
-    async function handleUpdate(e) {
-      e.preventDefault();
-      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
-      if (!user.email) return;
-
-      const newName = document.getElementById('update-name').value;
-      user.name = newName;
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-
-      await sendEventToN8n({
-        action: 'update_account',
-        name: newName,
-        email: user.email,
-        timestamp: new Date().toISOString()
-      });
-
-      closeModal('update-modal');
-      updateAuthUI();
-    }
-
-    async function deleteAccount() {
-      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
-      if (!user.email) return;
-
-      if (!confirm('Are you sure you want to delete your account?')) return;
-
-      await sendEventToN8n({
-        action: 'delete_account',
-        email: user.email,
-        timestamp: new Date().toISOString()
-      });
-
-      localStorage.removeItem(USER_STORAGE_KEY);
-      updateAuthUI();
-      alert('Account deleted.');
-    }
-
-    async function handleCheckout() {
-      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
-
-      const checkoutData = {
-        action: 'checkout',
-        orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
-        amount: 49.99,
-        currency: 'USD',
-        customer: {
-          email: user.email || 'guest@example.com',
-          name: user.name || 'Guest User'
-        },
-        items: [
-          { name: 'Sample Demo Product', quantity: 1, price: 49.99 }
-        ],
-        timestamp: new Date().toISOString()
-      };
-
-      await sendEventToN8n(checkoutData);
-      alert(`Order placed successfully! Event (${checkoutData.orderId}) sent to n8n.`);
     }
 
     function handleLogin(e) {
@@ -308,6 +221,30 @@
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       closeModal('login-modal');
       updateAuthUI();
+    }
+
+    async function deleteAccount() {
+      const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
+      if (!user.email) return;
+
+      if (!confirm('Are you sure you want to delete your account?')) return;
+
+      const webhookUrl = document.getElementById('n8n-user-webhook').value;
+      if (webhookUrl) {
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete_account', email: user.email, timestamp: new Date().toISOString() })
+          });
+        } catch (err) {
+          console.error('Delete webhook failed:', err);
+        }
+      }
+
+      localStorage.removeItem(USER_STORAGE_KEY);
+      updateAuthUI();
+      alert('Account deleted.');
     }
 
     function logout() {
@@ -324,7 +261,7 @@
       if (user) {
         authButtons.style.display = 'none';
         userMenu.style.display = 'flex';
-        emailDisplay.textContent = `${user.name} (${user.email})`;
+        emailDisplay.textContent = user.email;
       } else {
         authButtons.style.display = 'flex';
         userMenu.style.display = 'none';
@@ -334,13 +271,16 @@
 
     // Initialization
     document.addEventListener('DOMContentLoaded', () => {
-      loadWebhookUrl();
+      loadWebhookUrls();
       updateAuthUI();
 
-      const el = document.getElementById('n8n-global-webhook');
-      if (el) {
-        el.addEventListener('change', () => saveWebhookUrl());
-      }
+      const inputs = ['n8n-user-webhook', 'n8n-order-webhook'];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', () => saveWebhookUrls());
+        }
+      });
     });
   </script>
 </body>
